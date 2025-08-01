@@ -125,9 +125,11 @@ function drawOver() {
   image(bg, bgX, bgY, bgWidth, bgHeight); // Dessiner l'image de fond
 
   fill(233, 46, 46); // rouge
-  textSize(36); text('GAME OVER', W/2, 100);
-  textSize(24); text(`Score : ${score}   Best : ${best}`, W/2, 150);
-  textSize(24); text('TAP or CLICK or SPACE to RESTART', W/2, 200);
+  textSize(36); text('GAME OVER', W/2, 100); // "Game Over" sur la première ligne
+  textSize(24); text('Score: ' + score, W/2, 150); // "Score" sur la deuxième ligne
+  textSize(24); text('Best: ' + best, W/2, 200); // "Best" sur la troisième ligne
+  textSize(24); text('TAP or CLICK or SPACE', W/2, 250); // "Tap or click or space" sur la quatrième ligne
+  textSize(32); text('TO RESTART', W/2, 300); // "To restart" sur la cinquième ligne
 }
 
 function drawPlay() {
