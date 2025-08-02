@@ -10,20 +10,8 @@ body {
 
 canvas {
   display: block;
-  width: 100%;
-  max-width: 360px;
-  height: auto;
-  aspect-ratio: 360 / 640;
-  margin: 0 auto;
-}
-
-/* --- Correction spécifique mobile --- */
-@media (max-width: 768px) {
-  canvas {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-height: 100%;
-  }
+  background: #000;
+  width: 100vw;          /* 100% largeur écran */
+  height: 100vh;         /* 100% hauteur écran */
+  object-fit: contain;   /* Garde proportions 360x640 */
 }

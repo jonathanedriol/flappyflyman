@@ -1,135 +1,111 @@
-// Flappy Flyman – adapté pour smartphones
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
 let introFrames = [];
 let backgroundIntro1, backgroundIntro2, logo;
-let backgroundGameFrames = [];
-let backgroundGameIdx = 0;
-const GRAVITY = 0.4, FLAP = -7, W = 360, H = 640, SPEED = 1.5, ROCKET_RATE = 6, CHICKEN_RATE = 8;
+let backgroundGameFrames = [], backgroundGameIdx = 0;
+const GRAVITY = 0.4, FLAP = -7, BASE_W = 360, BASE_H = 640;
+let SPEED = 1.5, ROCKET_RATE = 6, CHICKEN_RATE = 8;
 let state = 'start';
-let canvas;
-let introBackgroundIdx = 0;
-let mainMusic; // Variable pour la musique de jeu
-let musicStarted = false; // Flag pour ne pas auto-jouer
+let canvas, introBackgroundIdx = 0;
+let mainMusic;
 
 function preload() {
-  for (let i = 0; i < 6; i++) {
-    let num = i.toString().padStart(2, '0');
-    rocketFrames[i] = loadImage(`sprites/frame_${num}.png`);
-  }
-  for (let i = 0; i < 2; i++) {
-    let num = i.toString().padStart(2, '0');
-    chickenFrames[i] = loadImage(`sprites/chicken_${num}.png`);
-  }
-  for (let i = 0; i < 4; i++) {
-    picImgs[i] = loadImage(`sprites/${picNames[i]}`);
-  }
-  for (let i = 0; i < 6; i++) {
-    let num = i.toString().padStart(3, '0');
-    introFrames[i] = loadImage(`sprites/avatarintro_${num}.png`);
-  }
+  for (let i = 0; i < 6; i++) rocketFrames[i] = loadImage(`sprites/frame_${String(i).padStart(2,'0')}.png`);
+  for (let i = 0; i < 2; i++) chickenFrames[i] = loadImage(`sprites/chicken_${String(i).padStart(2,'0')}.png`);
+  for (let i = 0; i < 4; i++) picImgs[i] = loadImage(`sprites/${picNames[i]}`);
+  for (let i = 0; i < 6; i++) introFrames[i] = loadImage(`sprites/avatarintro_${String(i).padStart(3,'0')}.png`);
   backgroundIntro1 = loadImage('sprites/backgroundintro_00.png');
   backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
   logo = loadImage('sprites/logo.png');
   backgroundGame = loadImage('sprites/fondbleu.png');
-  for (let i = 128; i >= 1; i--) {
-    let num = i.toString().padStart(3, '0');
-    backgroundGameFrames[128 - i] = loadImage(`sprites/background_${num}.png`);
-  }
+  for (let i = 128; i >= 1; i--) backgroundGameFrames[128-i] = loadImage(`sprites/background_${String(i).padStart(3,'0')}.png`);
   mainMusic = loadSound('sounds/main.mp3');
 }
 
 function setup() {
-  canvas = createCanvas(W, H);
-  centerCanvas();
+  canvas = createCanvas(BASE_W, BASE_H);
+  resizeCanvasAuto();
   resetGame();
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
 }
 
-function centerCanvas() {
-  const x = (windowWidth - width) / 2;
-  const y = (windowHeight - height) / 2;
-  canvas.position(x, y);
+function windowResized() { resizeCanvasAuto(); }
+
+function resizeCanvasAuto() {
+  const scaleFactor = Math.min(windowWidth / BASE_W, windowHeight / BASE_H);
+  const newW = BASE_W * scaleFactor;
+  const newH = BASE_H * scaleFactor;
+  resizeCanvas(newW, newH);
+  canvas.position((windowWidth - newW) / 2, (windowHeight - newH) / 2);
 }
 
 function draw() {
   background('#001e38');
   switch (state) {
     case 'start': drawStart(); break;
-    case 'play':  drawPlay();  break;
-    case 'over':  drawOver();  break;
+    case 'play':  drawPlay(); break;
+    case 'over':  drawOver(); break;
   }
 }
 
 function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
   push();
   imageMode(CENTER);
-  if (frameCount % (60 / ROCKET_RATE) === 0) {
-    rocketIdx = (rocketIdx + 1) % frames.length;
-  }
+  if (frameCount % (60 / ROCKET_RATE) === 0) rocketIdx = (rocketIdx + 1) % frames.length;
   image(frames[rocketIdx], x, y, width, height);
   pop();
 }
 
 function drawStart() {
   if (frameCount % 60 === 0) introBackgroundIdx = (introBackgroundIdx + 1) % 2;
-  if (introBackgroundIdx === 0) background(backgroundIntro1);
-  else background(backgroundIntro2);
+  background(introBackgroundIdx === 0 ? backgroundIntro1 : backgroundIntro2);
 
-  let logoWidth = W * 0.8;
+  let logoWidth = width * 0.8;
   let logoHeight = logo.height * (logoWidth / logo.width);
-  let logoY = 100;
-  image(logo, W/2 - logoWidth/2, logoY, logoWidth, logoHeight);
+  let logoY = height * 0.15;
+  image(logo, width/2 - logoWidth/2, logoY, logoWidth, logoHeight);
 
   fill(233, 46, 46);
-  textSize(36); text('FLAPPY FLYMAN', W/2, logoY + logoHeight + 50);
-
-  let avatarWidth = 300;
+  textSize(width * 0.1); text('FLAPPY FLYMAN', width/2, logoY + logoHeight + 30);
+  let avatarWidth = width * 0.8;
   let avatarHeight = introFrames[0].height * (avatarWidth / introFrames[0].width);
-  let avatarY = 300;
-  drawRocket(W/2, avatarY, introFrames, avatarWidth, avatarHeight);
-
-  textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
-  textSize(32); text('TO START', W/2, 500);
+  drawRocket(width/2, height * 0.55, introFrames, avatarWidth, avatarHeight);
+  textSize(width * 0.07); text('TAP or CLICK or SPACE', width/2, height * 0.8);
+  textSize(width * 0.09); text('TO START', width/2, height * 0.88);
 }
 
 function drawOver() {
-  image(backgroundGame, 0, 0, W, H);
+  image(backgroundGame, 0, 0, width, height);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
-
   let bg = backgroundGameFrames[backgroundGameIdx];
   let bgWidth = bg.width * 0.25;
   let bgHeight = bg.height * 0.25;
-  let bgX = (W - bgWidth) / 2;
-  let bgY = H - bgHeight;
-  image(bg, bgX, bgY, bgWidth, bgHeight);
+  image(bg, (width - bgWidth) / 2, height - bgHeight, bgWidth, bgHeight);
 
   fill(233, 46, 46);
-  textSize(36); text('GAME OVER', W/2, 100);
-  textSize(24); text('Score: ' + score, W/2, 150);
-  textSize(24); text('Best: ' + best, W/2, 200);
-  textSize(24); text('TAP or CLICK or SPACE', W/2, 250);
-  textSize(32); text('TO RESTART', W/2, 300);
+  textSize(width * 0.1); text('GAME OVER', width/2, height * 0.15);
+  textSize(width * 0.06);
+  text(`Score: ${score}`, width/2, height * 0.25);
+  text(`Best: ${best}`, width/2, height * 0.32);
+  text('TAP or CLICK or SPACE', width/2, height * 0.45);
+  textSize(width * 0.09); text('TO RESTART', width/2, height * 0.55);
 }
 
 function drawPlay() {
-  image(backgroundGame, 0, 0, W, H);
+  image(backgroundGame, 0, 0, width, height);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
-
   let bg = backgroundGameFrames[backgroundGameIdx];
   let bgWidth = bg.width * 0.25;
   let bgHeight = bg.height * 0.25;
-  let bgX = (W - bgWidth) / 2;
-  let bgY = H - bgHeight;
-  image(bg, bgX, bgY, bgWidth, bgHeight);
+  image(bg, (width - bgWidth) / 2, height - bgHeight, bgWidth, bgHeight);
 
   rocket.vel += GRAVITY;
   rocket.y += rocket.vel;
   drawRocket(rocket.x, rocket.y);
-  if (rocket.y < 0 || rocket.y > H) gameOver();
+  if (rocket.y < 0 || rocket.y > height) gameOver();
 
   let enemyFrequency = 120 - score * 2;
   if (frameCount % enemyFrequency === 0) {
@@ -158,8 +134,8 @@ function drawPlay() {
   }
 
   fill(233, 46, 46);
-  textSize(36);
-  text(score, W/2, 60);
+  textSize(width * 0.1);
+  text(score, width/2, height * 0.08);
 }
 
 function drawChicken(c) {
@@ -172,23 +148,19 @@ function drawChicken(c) {
 
 function drawPic(p) { image(p.img, p.x, p.y, p.w, p.h); }
 
-function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false }; }
+function makeChicken() { return { x: width, y: random(25, height - 25), w: 50, h: 50, passed: false }; }
 
 function makePic() {
   const idx = floor(random(4));
   const img = picImgs[idx];
   let y, w, h, hitboxW;
   switch (picNames[idx]) {
-    case 'pic_petit_haut.png':
-      w = 80 * 0.7 * 1.5; h = 80 * 0.7 * 1.5; hitboxW = 20; y = 0; break;
-    case 'pic_petit_bas.png':
-      w = 80 * 0.7 * 1.5; h = 80 * 0.7 * 1.5; hitboxW = 20; y = H - h; break;
-    case 'pic_gros_haut.png':
-      w = 120 * 0.7 * 1.5; h = 120 * 0.7 * 1.5; hitboxW = 40; y = 0; break;
-    case 'pic_gros_bas.png':
-      w = 120 * 0.7 * 1.5; h = 120 * 0.7 * 1.5; hitboxW = 40; y = H - h; break;
+    case 'pic_petit_haut.png': w = 80 * 1.05; h = 80 * 1.05; hitboxW = 20; y = 0; break;
+    case 'pic_petit_bas.png': w = 80 * 1.05; h = 80 * 1.05; hitboxW = 20; y = height - h; break;
+    case 'pic_gros_haut.png': w = 120 * 1.05; h = 120 * 1.05; hitboxW = 40; y = 0; break;
+    case 'pic_gros_bas.png': w = 120 * 1.05; h = 120 * 1.05; hitboxW = 40; y = height - h; break;
   }
-  return { x: W, y, w, h, hitboxW, img, passed: false };
+  return { x: width, y, w, h, hitboxW, img, passed: false };
 }
 
 function hitRocket(r, o) {
@@ -198,7 +170,7 @@ function hitRocket(r, o) {
 }
 
 function resetGame() {
-  rocket = { x: 100, y: H/2, vel: 0 };
+  rocket = { x: width * 0.28, y: height/2, vel: 0 };
   enemies = [];
   obstacles = [];
   score = 0;
@@ -207,7 +179,7 @@ function resetGame() {
 function gameOver() {
   state = 'over';
   best = max(score, best);
-  mainMusic.stop();
+  if (mainMusic.isPlaying()) mainMusic.stop();
 }
 
 function keyPressed() { if (key === ' ') action(); }
@@ -217,14 +189,12 @@ function action() {
   if (state === 'start') {
     resetGame();
     state = 'play';
-    if (!musicStarted) {
-      mainMusic.loop();
-      musicStarted = true;
-    }
+    if (!mainMusic.isPlaying()) mainMusic.loop();
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame();
     state = 'play';
+    if (!mainMusic.isPlaying()) mainMusic.loop();
   }
 }
