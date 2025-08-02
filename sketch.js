@@ -59,7 +59,7 @@ function setup() {
 function centerCanvas() {
   const x = (windowWidth - width) / 2;
   const y = (windowHeight - height) / 2;
-  canvas.position(x, y);
+  canvas.position(x > 0 ? x : 0, y > 0 ? y : 0);
 }
 
 function draw() {
