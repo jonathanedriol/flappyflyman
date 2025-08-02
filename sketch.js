@@ -249,24 +249,15 @@ function mousePressed() {
 }
 
 function action() {
-  if (!userInteracted) {
-    userInteracted = true;
-    try {
-      mainMusic.stop();
-      mainMusic.playMode('restart');
-      mainMusic.loop();
-    } catch(e) {
-      console.warn("Erreur lecture musique", e);
-    }
-  }
-  
   if (state === 'start') {
     resetGame();
     state = 'play';
+    if (!mainMusic.isPlaying()) mainMusic.loop();
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame();
     state = 'play';
+    if (!mainMusic.isPlaying()) mainMusic.loop();
   }
 }
