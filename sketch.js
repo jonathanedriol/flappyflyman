@@ -15,19 +15,19 @@ let mainMusic;
 function preload() {
   // Rocket
   for (let i = 0; i < 6; i++) {
-    rocketFrames[i] = loadImage(sprites/frame_${i.toString().padStart(2, '0')}.png);
+    rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
   }
   // Chickens
   for (let i = 0; i < 2; i++) {
-    chickenFrames[i] = loadImage(sprites/chicken_${i.toString().padStart(2, '0')}.png);
+    chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2, '0')}.png`);
   }
   // Pics
   for (let i = 0; i < 4; i++) {
-    picImgs[i] = loadImage(sprites/${picNames[i]});
+    picImgs[i] = loadImage(`sprites/${picNames[i]}`);
   }
   // Intro
   for (let i = 0; i < 6; i++) {
-    introFrames[i] = loadImage(sprites/avatarintro_${i.toString().padStart(3, '0')}.png);
+    introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
   }
   backgroundIntro1 = loadImage('sprites/backgroundintro_00.png');
   backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
@@ -36,7 +36,7 @@ function preload() {
   // Backgrounds
   backgroundGame = loadImage('sprites/fondbleu.png');
   for (let i = 128; i >= 1; i--) {
-    backgroundGameFrames[128 - i] = loadImage(sprites/background_${i.toString().padStart(3, '0')}.png);
+    backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
   }
   mainMusic = loadSound('sounds/main.mp3');
 }
