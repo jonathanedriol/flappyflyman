@@ -252,12 +252,18 @@ function action() {
   if (state === 'start') {
     resetGame();
     state = 'play';
-    if (!mainMusic.isPlaying()) mainMusic.loop();
+    if (!mainMusic.isPlaying()) {
+      mainMusic.play(); // démarre direct
+      mainMusic.setLoop(true);
+    }
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame();
     state = 'play';
-    if (!mainMusic.isPlaying()) mainMusic.loop();
+    if (!mainMusic.isPlaying()) {
+      mainMusic.play();
+      mainMusic.setLoop(true);
+    }
   }
 }

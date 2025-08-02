@@ -1,21 +1,22 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: #000;
   height: 100%;
-  overflow: hidden;
+  width: 100%;
+  background: #000;
   display: flex;
-  justify-content: center;
   align-items: center;
-  -webkit-text-size-adjust: none; /* empêche zoom auto sur iOS */
-  touch-action: manipulation;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: manipulation; /* évite les décalages au tap */
 }
 
 canvas {
   display: block;
-  max-width: 100vw;
-  max-height: 100vh;
-  width: auto;
+  width: 100%;
   height: auto;
+  max-width: 360px;
+  max-height: 640px;
   object-fit: contain;
+  position: relative;
 }
