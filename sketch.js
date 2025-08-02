@@ -1,4 +1,3 @@
-// Flappy Flyman – adapté pour smartphones
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -11,6 +10,7 @@ let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
+let userInteracted = false; // pour le son
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -77,7 +77,11 @@ function drawStart() {
   if (frameCount % 60 === 0) {
     introBackgroundIdx = (introBackgroundIdx + 1) % 2;
   }
-  background(introBackgroundIdx === 0 ? backgroundIntro1 : backgroundIntro2);
+  if (introBackgroundIdx === 0) {
+    background(backgroundIntro1);
+  } else {
+    background(backgroundIntro2);
+  }
   let logoWidth = W * 0.8;
   let logoHeight = logo.height * (logoWidth / logo.width);
   let logoY = 100;
@@ -126,6 +130,7 @@ function drawPlay() {
   rocket.y += rocket.vel;
   drawRocket(rocket.x, rocket.y);
   if (rocket.y < 0 || rocket.y > H) gameOver();
+
   let enemyFrequency = 120 - score * 2;
   if (frameCount % enemyFrequency === 0) {
     if (random() > 0.5) {
@@ -134,6 +139,7 @@ function drawPlay() {
       obstacles.push(makePic());
     }
   }
+
   let chickenSpeed = SPEED + score * 0.05;
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
@@ -143,6 +149,7 @@ function drawPlay() {
     if (hitRocket(rocket, c)) gameOver();
     if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
   }
+
   let picSpeed = SPEED + score * 0.05;
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let p = obstacles[i];
@@ -152,6 +159,7 @@ function drawPlay() {
     if (hitRocket(rocket, p)) gameOver();
     if (!p.passed && p.x + p.w < rocket.x) { p.passed = true; score++; }
   }
+
   fill(233, 46, 46);
   textSize(36);
   text(score, W/2, 60);
@@ -225,7 +233,9 @@ function resetGame() {
 function gameOver() {
   state = 'over';
   best = max(score, best);
-  mainMusic.stop();
+  if (mainMusic && mainMusic.isPlaying()) {
+    mainMusic.stop();
+  }
 }
 
 function keyPressed() {
@@ -239,23 +249,24 @@ function mousePressed() {
 }
 
 function action() {
-  if (state === 'start') {
-    resetGame();
-    state = 'play';
+  if (!userInteracted) {
+    userInteracted = true;
     try {
       mainMusic.stop();
       mainMusic.playMode('restart');
       mainMusic.loop();
-    } catch (e) { console.error("Erreur musique:", e); }
+    } catch(e) {
+      console.warn("Erreur lecture musique", e);
+    }
+  }
+  
+  if (state === 'start') {
+    resetGame();
+    state = 'play';
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame();
     state = 'play';
-    try {
-      mainMusic.stop();
-      mainMusic.playMode('restart');
-      mainMusic.loop();
-    } catch (e) { console.error("Erreur musique:", e); }
   }
 }

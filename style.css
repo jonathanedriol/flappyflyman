@@ -1,17 +1,21 @@
-body {
+html, body {
   margin: 0;
+  padding: 0;
   background: #000;
+  height: 100%;
   overflow: hidden;
-  touch-action: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-text-size-adjust: none; /* empêche zoom auto sur iOS */
+  touch-action: manipulation;
 }
 
 canvas {
   display: block;
-  background: #000;
-  width: 100vw;          /* 100% largeur écran */
-  height: 100vh;         /* 100% hauteur écran */
-  object-fit: contain;   /* Garde proportions 360x640 */
+  max-width: 100vw;
+  max-height: 100vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
