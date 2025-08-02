@@ -1,0 +1,33 @@
+/* Reset de base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: white;              /* Fond blanc autour du canvas */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* Canvas fixe centré */
+canvas {
+  display: block;
+  width: 360px;                   /* largeur fixe */
+  height: 640px;                  /* hauteur fixe */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Ajustement responsive pour petits écrans (mobile) */
+@media (max-width: 480px) {
+  canvas {
+    width: 100vw;                  /* prend toute la largeur */
+    height: auto;                  /* adapte la hauteur */
+  }
+}
