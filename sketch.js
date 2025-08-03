@@ -1,4 +1,4 @@
-// Flappy Flyman – version stabilisée avec fix centrage horizontal uniquement
+// Flappy Flyman – version stabilisée (fix affichage)
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -11,8 +11,6 @@ let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
-
-let canvasY = null; // position verticale fixe du canvas
 
 function preload() {
   // Rocket
@@ -54,15 +52,8 @@ function setup() {
 
 function centerCanvas() {
   const x = (windowWidth - width) / 2;
-  if (canvasY === null) {
-    let topValue = canvas.elt.style.top;
-    if (topValue) {
-      canvasY = parseInt(topValue);
-    } else {
-      canvasY = 0;
-    }
-  }
-  canvas.position(x, canvasY);
+  const y = 0; // ✅ Plein écran vertical (comme avant)
+  canvas.position(x, y);
 }
 
 function windowResized() {
@@ -89,23 +80,19 @@ function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
 }
 
 function drawStart() {
-  // On affiche bien le fond intro plein canvas comme avant
   if (frameCount % 60 === 0) introBackgroundIdx = (introBackgroundIdx + 1) % 2;
   image(introBackgroundIdx === 0 ? backgroundIntro1 : backgroundIntro2, 0, 0, W, H);
 
   let logoWidth = W * 0.8;
   let logoHeight = logo.height * (logoWidth / logo.width);
-  image(logo, W / 2 - logoWidth / 2, 100, logoWidth, logoHeight);
+  image(logo, W/2 - logoWidth/2, 100, logoWidth, logoHeight);
 
   fill(233, 46, 46);
-  textSize(36);
-  text('FLAPPY FLYMAN', W / 2, 100 + logoHeight + 50);
-  drawRocket(W / 2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
+  textSize(36); text('FLAPPY FLYMAN', W/2, 100 + logoHeight + 50);
+  drawRocket(W/2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
 
-  textSize(24);
-  text('TAP or CLICK or SPACE', W / 2, 450);
-  textSize(32);
-  text('TO START', W / 2, 500);
+  textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
+  textSize(32); text('TO START', W/2, 500);
 }
 
 function drawOver() {
@@ -118,14 +105,11 @@ function drawOver() {
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
 
   fill(233, 46, 46);
-  textSize(36);
-  text('GAME OVER', W / 2, 100);
-  textSize(24);
-  text('Score: ' + score, W / 2, 150);
-  text('Best: ' + best, W / 2, 200);
-  text('TAP or CLICK or SPACE', W / 2, 250);
-  textSize(32);
-  text('TO RESTART', W / 2, 300);
+  textSize(36); text('GAME OVER', W/2, 100);
+  textSize(24); text('Score: ' + score, W/2, 150);
+  text('Best: ' + best, W/2, 200);
+  text('TAP or CLICK or SPACE', W/2, 250);
+  textSize(32); text('TO RESTART', W/2, 300);
 }
 
 function drawPlay() {
@@ -142,7 +126,7 @@ function drawPlay() {
   drawRocket(rocket.x, rocket.y);
   if (rocket.y < 0 || rocket.y > H) gameOver();
 
-  let enemyFrequency = max(60, 120 - score * 1.5); // limite basse = 60
+  let enemyFrequency = max(60, 120 - score * 1.5);
   if (frameCount % enemyFrequency === 0) {
     if (random() > 0.5) enemies.push(makeChicken());
     else obstacles.push(makePic());
@@ -155,10 +139,7 @@ function drawPlay() {
     drawChicken(c);
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
-    if (!c.passed && c.x + c.w < rocket.x) {
-      c.passed = true;
-      score++;
-    }
+    if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
   }
 
   let picSpeed = SPEED + score * 0.05;
@@ -168,15 +149,12 @@ function drawPlay() {
     drawPic(p);
     if (p.x + p.w < 0) obstacles.splice(i, 1);
     if (hitRocket(rocket, p)) gameOver();
-    if (!p.passed && p.x + p.w < rocket.x) {
-      p.passed = true;
-      score++;
-    }
+    if (!p.passed && p.x + p.w < rocket.x) { p.passed = true; score++; }
   }
 
   fill(233, 46, 46);
   textSize(36);
-  text(score, W / 2, 60);
+  text(score, W/2, 60);
 }
 
 function drawChicken(c) {
@@ -187,56 +165,31 @@ function drawChicken(c) {
   pop();
 }
 
-function drawPic(p) {
-  image(p.img, p.x, p.y, p.w, p.h);
-}
+function drawPic(p) { image(p.img, p.x, p.y, p.w, p.h); }
 
-function makeChicken() {
-  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false };
-}
+function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false }; }
 
 function makePic() {
   const idx = floor(random(4));
   const img = picImgs[idx];
   let y, w, h, hitboxW;
   switch (picNames[idx]) {
-    case 'pic_petit_haut.png':
-      w = (h = 80 * 1.05);
-      hitboxW = 20;
-      y = 0;
-      break;
-    case 'pic_petit_bas.png':
-      w = (h = 80 * 1.05);
-      hitboxW = 20;
-      y = H - h;
-      break;
-    case 'pic_gros_haut.png':
-      w = (h = 120 * 1.05);
-      hitboxW = 40;
-      y = 0;
-      break;
-    case 'pic_gros_bas.png':
-      w = (h = 120 * 1.05);
-      hitboxW = 40;
-      y = H - h;
-      break;
+    case 'pic_petit_haut.png': w=h=80*1.05; hitboxW=20; y=0; break;
+    case 'pic_petit_bas.png':  w=h=80*1.05; hitboxW=20; y=H-h; break;
+    case 'pic_gros_haut.png':  w=h=120*1.05; hitboxW=40; y=0; break;
+    case 'pic_gros_bas.png':   w=h=120*1.05; hitboxW=40; y=H-h; break;
   }
   return { x: W, y, w, h, hitboxW, img, passed: false };
 }
 
 function hitRocket(r, o) {
-  const wR = 100,
-    hR = 34;
-  return (
-    r.x - wR / 2 < o.x + o.w &&
-    r.x + wR / 2 > o.x &&
-    r.y - hR / 2 < o.y + o.h &&
-    r.y + hR / 2 > o.y
-  );
+  const wR = 100, hR = 34;
+  return (r.x - wR/2 < o.x + o.w && r.x + wR/2 > o.x) &&
+         (r.y - hR/2 < o.y + o.h && r.y + hR/2 > o.y);
 }
 
 function resetGame() {
-  rocket = { x: 100, y: H / 2, vel: 0 };
+  rocket = { x: 100, y: H/2, vel: 0 };
   enemies = [];
   obstacles = [];
   score = 0;
@@ -248,23 +201,17 @@ function gameOver() {
   if (mainMusic && mainMusic.isPlaying()) mainMusic.stop();
 }
 
-function keyPressed() {
-  if (key === ' ') action();
-}
-function mousePressed() {
-  action();
-}
+function keyPressed() { if (key === ' ') action(); }
+function mousePressed() { action(); }
 
 function action() {
   if (state === 'start') {
-    resetGame();
-    state = 'play';
+    resetGame(); state = 'play';
     if (mainMusic && !mainMusic.isPlaying()) mainMusic.loop();
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
-    resetGame();
-    state = 'play';
+    resetGame(); state = 'play';
     if (mainMusic && !mainMusic.isPlaying()) mainMusic.loop();
   }
 }
