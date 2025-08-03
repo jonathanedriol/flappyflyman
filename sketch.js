@@ -1,4 +1,4 @@
-// Flappy Flyman – version stabilisée + Fix Son
+// Flappy Flyman – version stabilisée avec correctif musique
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -51,11 +51,14 @@ function setup() {
 }
 
 function centerCanvas() {
-  const scale = Math.min(windowWidth / W, windowHeight / H);
-  canvas.style('transform', `scale(${scale})`);
-  canvas.style('transform-origin', 'top left');
-  const x = (windowWidth - W * scale) / 2;
-  const y = (windowHeight - H * scale) / 2;
+  const scaleFactor = Math.min(windowWidth / W, windowHeight / H);
+  const canvasWidth = W * scaleFactor;
+  const canvasHeight = H * scaleFactor;
+  canvas.style('width', `${canvasWidth}px`);
+  canvas.style('height', `${canvasHeight}px`);
+
+  const x = (windowWidth - canvasWidth) / 2;
+  const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
 }
 
@@ -210,17 +213,17 @@ function mousePressed() { action(); }
 function action() {
   if (state === 'start') {
     resetGame(); state = 'play';
-    if (mainMusic) {
-      mainMusic.stop(); // 🔥 Toujours redémarrer depuis 0
-      mainMusic.loop();
+    if (mainMusic) { 
+      mainMusic.stop(); 
+      mainMusic.loop(); 
     }
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame(); state = 'play';
-    if (mainMusic) {
-      mainMusic.stop(); // 🔥 Restart musique
-      mainMusic.loop();
+    if (mainMusic) { 
+      mainMusic.stop(); 
+      mainMusic.loop(); 
     }
   }
 }
