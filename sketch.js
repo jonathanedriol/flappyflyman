@@ -1,4 +1,4 @@
-// Flappy Flyman – version stabilisée
+// Flappy Flyman – version stabilisée + Fix Son
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -48,31 +48,15 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-
-  // Bloquer le scroll/zoom tactile et préparer le son
-  window.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (mainMusic && !mainMusic.isPlaying()) {
-      mainMusic.loop();
-      mainMusic.pause();
-    }
-  }, { passive: false });
-
-  window.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-
-  window.addEventListener('mousedown', () => {
-    if (mainMusic && !mainMusic.isPlaying()) {
-      mainMusic.loop();
-      mainMusic.pause();
-    }
-  });
 }
 
 function centerCanvas() {
-  let scale = Math.min(windowWidth / W, windowHeight / H);
-  canvas.style('transform', `translate(-50%, -50%) scale(${scale})`);
-  canvas.style('transform-origin', 'center center');
-  canvas.position(windowWidth / 2, windowHeight / 2);
+  const scale = Math.min(windowWidth / W, windowHeight / H);
+  canvas.style('transform', `scale(${scale})`);
+  canvas.style('transform-origin', 'top left');
+  const x = (windowWidth - W * scale) / 2;
+  const y = (windowHeight - H * scale) / 2;
+  canvas.position(x, y);
 }
 
 function windowResized() {
@@ -226,11 +210,17 @@ function mousePressed() { action(); }
 function action() {
   if (state === 'start') {
     resetGame(); state = 'play';
-    if (mainMusic && mainMusic.isPaused()) mainMusic.play();
+    if (mainMusic) {
+      mainMusic.stop(); // 🔥 Toujours redémarrer depuis 0
+      mainMusic.loop();
+    }
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame(); state = 'play';
-    if (mainMusic && mainMusic.isPaused()) mainMusic.play();
+    if (mainMusic) {
+      mainMusic.stop(); // 🔥 Restart musique
+      mainMusic.loop();
+    }
   }
 }
