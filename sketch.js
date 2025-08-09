@@ -1,4 +1,4 @@
-// Flappy Flyman – version stable avec audio MP3 simple
+// Flappy Flyman – version avec audio stable et trajectoire diagonale poulets dès 20 points
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -42,9 +42,6 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-
-  // Optional: éviter que la musique ne soit bloquée par l'autoplay policy mobile
-  // on peut lancer la musique au premier tap
 }
 
 function centerCanvas() {
@@ -136,17 +133,41 @@ function drawPlay() {
     else obstacles.push(makePic());
   }
 
-  let chickenSpeed = SPEED + score * 0.05;
+  let picSpeed = SPEED + score * 0.05;
+  let chickenSpeed = picSpeed * 1.2; // poulets plus rapides
+
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
     c.x -= chickenSpeed;
+
+    // Trajectoire diagonale à partir de 20 pts
+    if(score >= 20){
+      if(c.vy === undefined){
+        // assigner vy aléatoire une fois
+        c.vy = random() < 0.5 ? 1.5 : -1.5;
+      }
+      c.y += c.vy;
+
+      // rebond sur les bords haut/bas
+      if(c.y < 0) {
+        c.y = 0;
+        c.vy *= -1;
+      }
+      if(c.y > H - c.h) {
+        c.y = H - c.h;
+        c.vy *= -1;
+      }
+    } else {
+      // trajectoire droite horizontale avant 20 pts
+      c.vy = 0;
+    }
+
     drawChicken(c);
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
     if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
   }
 
-  let picSpeed = SPEED + score * 0.05;
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let p = obstacles[i];
     p.x -= picSpeed;
@@ -171,7 +192,9 @@ function drawChicken(c) {
 
 function drawPic(p) { image(p.img, p.x, p.y, p.w, p.h); }
 
-function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false }; }
+function makeChicken() {
+  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false, vy: 0 };
+}
 
 function makePic() {
   const idx = floor(random(4));
@@ -212,18 +235,18 @@ function action() {
   if (state === 'start') {
     resetGame(); state = 'play';
     if (mainMusic) {
-      if (mainMusic.isPlaying()) mainMusic.stop();
+      mainMusic.stop();
       mainMusic.play();
-      mainMusic.setLoop(true);
+      mainMusic.loop();
     }
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame(); state = 'play';
     if (mainMusic) {
-      if (mainMusic.isPlaying()) mainMusic.stop();
+      mainMusic.stop();
       mainMusic.play();
-      mainMusic.setLoop(true);
+      mainMusic.loop();
     }
   }
 }
