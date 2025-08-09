@@ -1,5 +1,4 @@
-// Flappy Flyman – version stabilisée avec correctif musique + centrage horizontal + trajectoires poulets
-
+// Flappy Flyman – version avec trajectoires diagonales poulets à partir de 20 points
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -52,7 +51,6 @@ function centerCanvas() {
   canvas.style('width', `${canvasWidth}px`);
   canvas.style('height', `${canvasHeight}px`);
 
-  // Centrer horizontalement, vertical idem avant
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
@@ -83,17 +81,13 @@ function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
 
 function drawStart() {
   if (frameCount % 60 === 0) introBackgroundIdx = (introBackgroundIdx + 1) % 2;
-
   image(introBackgroundIdx === 0 ? backgroundIntro1 : backgroundIntro2, 0, 0, W, H);
-
   let logoWidth = W * 0.8;
   let logoHeight = logo.height * (logoWidth / logo.width);
   image(logo, W/2 - logoWidth/2, 100, logoWidth, logoHeight);
-
   fill(233, 46, 46);
   textSize(36); text('FLAPPY FLYMAN', W/2, 100 + logoHeight + 50);
   drawRocket(W/2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
-
   textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
   textSize(32); text('TO START', W/2, 500);
 }
@@ -101,12 +95,10 @@ function drawStart() {
 function drawOver() {
   image(backgroundGame, 0, 0, W, H);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
-
   let bg = backgroundGameFrames[backgroundGameIdx];
   let bgWidth = bg.width * 0.25;
   let bgHeight = bg.height * 0.25;
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
-
   fill(233, 46, 46);
   textSize(36); text('GAME OVER', W/2, 100);
   textSize(24); text('Score: ' + score, W/2, 150);
@@ -118,7 +110,6 @@ function drawOver() {
 function drawPlay() {
   image(backgroundGame, 0, 0, W, H);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
-
   let bg = backgroundGameFrames[backgroundGameIdx];
   let bgWidth = bg.width * 0.25;
   let bgHeight = bg.height * 0.25;
@@ -129,39 +120,57 @@ function drawPlay() {
   drawRocket(rocket.x, rocket.y);
   if (rocket.y < 0 || rocket.y > H) gameOver();
 
+  // Vitesse pics
+  let picSpeed = SPEED + score * 0.05;
+
+  // Vitesse poulets à +30%
+  let chickenSpeed = picSpeed * 1.3;
+
   let enemyFrequency = max(60, 120 - score * 1.5);
   if (frameCount % enemyFrequency === 0) {
     if (random() > 0.5) enemies.push(makeChicken());
     else obstacles.push(makePic());
   }
 
-  let picSpeed = SPEED + score * 0.05;
-  let chickenSpeed = picSpeed * 1.3; // +30%
-
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
-    c.x -= chickenSpeed;
 
-    if(score >= 20){
-      if(c.vy === undefined){
-        // Angle 45°, vy = vx = chickenSpeed
-        c.vy = random() < 0.5 ? chickenSpeed : -chickenSpeed;
+    // À partir de 20 points, gestion diagonale aléatoire
+    if (score >= 20) {
+      if (c.vx === undefined) {
+        // Initialisation de la trajectoire diagonale ou horizontale
+        if (random() < 0.5) {
+          // diagonale: vx et vy à 45°
+          // Vitesse vectorielle = chickenSpeed, vx = vy = chickenSpeed / sqrt(2)
+          const v = chickenSpeed / Math.sqrt(2);
+          c.vx = -v; // toujours vers la gauche
+          c.vy = random() < 0.5 ? -v : v; // haut ou bas
+        } else {
+          // trajectoire horizontale simple
+          c.vx = -chickenSpeed;
+          c.vy = 0;
+        }
       }
+      // déplacement selon vx/vy
+      c.x += c.vx;
       c.y += c.vy;
 
-      if(c.y < 0) {
+      // rebonds sur les bords haut/bas
+      if (c.y < 0) {
         c.y = 0;
-        c.vy *= -1;
-      }
-      if(c.y > H - c.h) {
+        c.vy = -c.vy;
+      } else if (c.y + c.h > H) {
         c.y = H - c.h;
-        c.vy *= -1;
+        c.vy = -c.vy;
       }
+
     } else {
-      c.vy = 0;
+      // avant 20 points, trajectoire horizontale
+      c.x -= chickenSpeed;
     }
 
     drawChicken(c);
+
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
     if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
@@ -191,7 +200,7 @@ function drawChicken(c) {
 
 function drawPic(p) { image(p.img, p.x, p.y, p.w, p.h); }
 
-function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false, vy: 0 }; }
+function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false }; }
 
 function makePic() {
   const idx = floor(random(4));
