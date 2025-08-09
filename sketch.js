@@ -1,4 +1,5 @@
-// Flappy Flyman – version avec audio stable et trajectoire diagonale poulets dès 20 points
+// Flappy Flyman – version stabilisée avec correctif musique + centrage horizontal + trajectoires poulets
+
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -51,6 +52,7 @@ function centerCanvas() {
   canvas.style('width', `${canvasWidth}px`);
   canvas.style('height', `${canvasHeight}px`);
 
+  // Centrer horizontalement, vertical idem avant
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
@@ -134,21 +136,19 @@ function drawPlay() {
   }
 
   let picSpeed = SPEED + score * 0.05;
-  let chickenSpeed = picSpeed * 1.2; // poulets plus rapides
+  let chickenSpeed = picSpeed * 1.3; // +30%
 
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
     c.x -= chickenSpeed;
 
-    // Trajectoire diagonale à partir de 20 pts
     if(score >= 20){
       if(c.vy === undefined){
-        // assigner vy aléatoire une fois
-        c.vy = random() < 0.5 ? 1.5 : -1.5;
+        // Angle 45°, vy = vx = chickenSpeed
+        c.vy = random() < 0.5 ? chickenSpeed : -chickenSpeed;
       }
       c.y += c.vy;
 
-      // rebond sur les bords haut/bas
       if(c.y < 0) {
         c.y = 0;
         c.vy *= -1;
@@ -158,7 +158,6 @@ function drawPlay() {
         c.vy *= -1;
       }
     } else {
-      // trajectoire droite horizontale avant 20 pts
       c.vy = 0;
     }
 
@@ -192,9 +191,7 @@ function drawChicken(c) {
 
 function drawPic(p) { image(p.img, p.x, p.y, p.w, p.h); }
 
-function makeChicken() {
-  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false, vy: 0 };
-}
+function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false, vy: 0 }; }
 
 function makePic() {
   const idx = floor(random(4));
@@ -234,8 +231,8 @@ function mousePressed() { action(); }
 function action() {
   if (state === 'start') {
     resetGame(); state = 'play';
-    if (mainMusic) {
-      mainMusic.stop();
+    if (mainMusic) { 
+      mainMusic.stop(); 
       mainMusic.play();
       mainMusic.loop();
     }
@@ -243,8 +240,8 @@ function action() {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame(); state = 'play';
-    if (mainMusic) {
-      mainMusic.stop();
+    if (mainMusic) { 
+      mainMusic.stop(); 
       mainMusic.play();
       mainMusic.loop();
     }
