@@ -1,4 +1,4 @@
-// Flappy Flyman – version stabilisée avec correctif musique + centrage horizontal
+// Flappy Flyman – version stable avec audio MP3 simple
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -11,7 +11,6 @@ let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
-let isMusicPlaying = false;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -33,7 +32,6 @@ function preload() {
   for (let i = 128; i >= 1; i--) {
     backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
   }
-  // On charge uniquement le mp3
   mainMusic = loadSound('sounds/main.mp3');
 }
 
@@ -44,7 +42,9 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-  // Pas de lecture audio ici
+
+  // Optional: éviter que la musique ne soit bloquée par l'autoplay policy mobile
+  // on peut lancer la musique au premier tap
 }
 
 function centerCanvas() {
@@ -55,7 +55,7 @@ function centerCanvas() {
   canvas.style('height', `${canvasHeight}px`);
 
   const x = (windowWidth - canvasWidth) / 2;
-  const y = (windowHeight - canvasHeight) / 2; // vertical unchanged
+  const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
 }
 
@@ -203,38 +203,27 @@ function gameOver() {
   state = 'over';
   best = max(score, best);
   if (mainMusic && mainMusic.isPlaying()) mainMusic.stop();
-  isMusicPlaying = false;
 }
 
-function keyPressed() { 
-  if (key === ' ') action(); 
-}
-
-function mousePressed() { 
-  action(); 
-}
+function keyPressed() { if (key === ' ') action(); }
+function mousePressed() { action(); }
 
 function action() {
-  userStartAudio().then(() => {
-    playMusicIfNeeded();
-  });
-
   if (state === 'start') {
-    resetGame();
-    state = 'play';
+    resetGame(); state = 'play';
+    if (mainMusic) {
+      if (mainMusic.isPlaying()) mainMusic.stop();
+      mainMusic.play();
+      mainMusic.setLoop(true);
+    }
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
-    resetGame();
-    state = 'play';
-  }
-}
-
-function playMusicIfNeeded() {
-  if (mainMusic && !isMusicPlaying) {
-    if (mainMusic.isPlaying()) mainMusic.stop();
-    mainMusic.play();
-    mainMusic.loop();
-    isMusicPlaying = true;
+    resetGame(); state = 'play';
+    if (mainMusic) {
+      if (mainMusic.isPlaying()) mainMusic.stop();
+      mainMusic.play();
+      mainMusic.setLoop(true);
+    }
   }
 }
