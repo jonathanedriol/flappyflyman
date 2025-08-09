@@ -1,3 +1,4 @@
+// Flappy Flyman – version stabilisée avec correctif musique + centrage horizontal
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -9,10 +10,8 @@ let SPEED = 1.5, ROCKET_RATE = 6, CHICKEN_RATE = 8;
 let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
-
 let mainMusic;
 let isMusicPlaying = false;
-let isAudioInitialized = false;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -34,14 +33,8 @@ function preload() {
   for (let i = 128; i >= 1; i--) {
     backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
   }
-  // Chargement de la musique avec format choisi automatiquement
-  let audioFormat = '';
-  if (soundFormats().includes('ogg')) {
-    audioFormat = 'ogg';
-  } else {
-    audioFormat = 'mp3';
-  }
-  mainMusic = loadSound(`sounds/main.${audioFormat}`);
+  // On charge uniquement le mp3
+  mainMusic = loadSound('sounds/main.mp3');
 }
 
 function setup() {
@@ -51,14 +44,7 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-
-  // Initialisation audio en attendant une interaction utilisateur
-  userStartAudio().then(() => {
-    if (!isAudioInitialized) {
-      isAudioInitialized = true;
-      startMusic();
-    }
-  });
+  // Pas de lecture audio ici
 }
 
 function centerCanvas() {
@@ -68,9 +54,8 @@ function centerCanvas() {
   canvas.style('width', `${canvasWidth}px`);
   canvas.style('height', `${canvasHeight}px`);
 
-  // On centre horizontalement, vertical reste identique
   const x = (windowWidth - canvasWidth) / 2;
-  const y = (windowHeight - canvasHeight) / 2;
+  const y = (windowHeight - canvasHeight) / 2; // vertical unchanged
   canvas.position(x, y);
 }
 
@@ -221,28 +206,33 @@ function gameOver() {
   isMusicPlaying = false;
 }
 
-function keyPressed() { if (key === ' ') action(); }
-function mousePressed() { action(); }
+function keyPressed() { 
+  if (key === ' ') action(); 
+}
+
+function mousePressed() { 
+  action(); 
+}
 
 function action() {
+  userStartAudio().then(() => {
+    playMusicIfNeeded();
+  });
+
   if (state === 'start') {
     resetGame();
     state = 'play';
-    playMusicIfNeeded();
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
     resetGame();
     state = 'play';
-    playMusicIfNeeded();
   }
 }
 
 function playMusicIfNeeded() {
-  if (mainMusic) {
-    if (mainMusic.isPlaying()) {
-      mainMusic.stop();
-    }
+  if (mainMusic && !isMusicPlaying) {
+    if (mainMusic.isPlaying()) mainMusic.stop();
     mainMusic.play();
     mainMusic.loop();
     isMusicPlaying = true;
