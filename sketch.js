@@ -10,7 +10,6 @@ const GRAVITY = 0.4, FLAP = -7, W = 360, H = 640, SPEED = 1.5, ROCKET_RATE = 6, 
 let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
-let mainMusic; // Variable pour la musique de jeu
 
 function preload() {
   // avatar
@@ -43,8 +42,6 @@ function preload() {
     let num = i.toString().padStart(3, '0');
     backgroundGameFrames[128 - i] = loadImage(`sprites/background_${num}.png`);
   }
-  // Charger la musique de jeu
-  mainMusic = loadSound('sounds/main.mp3');
 }
 
 function setup() {
@@ -69,16 +66,6 @@ function draw() {
     case 'play':  drawPlay();  break;
     case 'over':  drawOver();  break;
   }
-}
-
-function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
-  push();
-  imageMode(CENTER);
-  if (frameCount % (60 / ROCKET_RATE) === 0) {
-    rocketIdx = (rocketIdx + 1) % frames.length;
-  }
-  image(frames[rocketIdx], x, y, width, height);
-  pop();
 }
 
 function drawStart() {
@@ -151,9 +138,7 @@ function drawPlay() {
   drawRocket(rocket.x, rocket.y);
   if (rocket.y < 0 || rocket.y > H) gameOver();
 
-  // Calculer la fréquence d'apparition des ennemis en fonction du score
-  let enemyFrequency = 120 - score * 2; // Réduire la fréquence à mesure que le score augmente
-  if (frameCount % enemyFrequency === 0) {
+  if (frameCount % 120 === 0) {
     if (random() > 0.5) {
       enemies.push(makeChicken());
     } else {
@@ -162,10 +147,9 @@ function drawPlay() {
   }
 
   // Poulets
-  let chickenSpeed = SPEED + score * 0.05; // Accélérer progressivement avec le score
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
-        c.x -= chickenSpeed; // Utiliser la vitesse ajustée
+    c.x -= SPEED * 2.5;
     drawChicken(c);
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
@@ -173,10 +157,9 @@ function drawPlay() {
   }
 
   // Pics
-  let picSpeed = SPEED + score * 0.05; // Accélérer progressivement avec le score
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let p = obstacles[i];
-    p.x -= picSpeed; // Utiliser la vitesse ajustée
+    p.x -= SPEED;
     drawPic(p);
     if (p.x + p.w < 0) obstacles.splice(i, 1);
     if (hitRocket(rocket, p)) gameOver();
@@ -186,6 +169,16 @@ function drawPlay() {
   fill(233, 46, 46); // rouge
   textSize(36);
   text(score, W/2, 60);
+}
+
+function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
+  push();
+  imageMode(CENTER);
+  if (frameCount % (60 / ROCKET_RATE) === 0) {
+    rocketIdx = (rocketIdx + 1) % frames.length;
+  }
+  image(frames[rocketIdx], x, y, width, height);
+  pop();
 }
 
 function drawChicken(c) {
@@ -256,29 +249,16 @@ function resetGame() {
 function gameOver() {
   state = 'over';
   best = max(score, best);
-  mainMusic.stop(); // Arrêter la musique de jeu
 }
 
 function keyPressed() {
-  if (key === ' ') {
-    action();
-  }
+  if (key === ' ') action();
 }
 
-function mousePressed() {
-  action();
-}
+function mousePressed() { action(); }
 
 function action() {
-  if (state === 'start') {
-    resetGame();
-    state = 'play';
-    mainMusic.loop();  // Lancer la musique de jeu en boucle
-  } else if (state === 'play') {
-    rocket.vel = FLAP;
-  } else if (state === 'over') {
-    resetGame();
-    state = 'play';
-    mainMusic.loop();  // Relancer la musique de jeu en boucle
-  }
+  if (state === 'start') { resetGame(); state = 'play'; }
+  else if (state === 'play') rocket.vel = FLAP;
+  else if (state === 'over') { resetGame(); state = 'play'; }
 }
