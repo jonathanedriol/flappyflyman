@@ -11,10 +11,12 @@ let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
 
-// AUDIO
 let main;
 
 function preload() {
+  // son principal
+  main = loadSound('sounds/main.mp3');
+
   // avatar
   for (let i = 0; i < 6; i++) {
     let num = i.toString().padStart(2, '0');
@@ -39,14 +41,12 @@ function preload() {
   // logo
   logo = loadImage('sprites/logo.png');
   // fond de jeu
-  backgroundGame = loadImage('sprites/fondbleu.png'); // Charger l'image de fond
+  backgroundGame = loadImage('sprites/fondbleu.png');
   // fonds de jeu animés (chargés dans l'ordre inverse)
   for (let i = 128; i >= 1; i--) {
     let num = i.toString().padStart(3, '0');
     backgroundGameFrames[128 - i] = loadImage(`sprites/background_${num}.png`);
   }
-  // AUDIO - charger musique principale
-  main = loadSound('audio/main.mp3');
 }
 
 function setup() {
@@ -83,60 +83,58 @@ function drawStart() {
     background(backgroundIntro2);
   }
   // Logo
-  let logoWidth = W * 0.8; // 80% de la largeur du canvas
+  let logoWidth = W * 0.8;
   let logoHeight = logo.height * (logoWidth / logo.width);
-  let logoY = 100; // Position Y du logo descendue
-  image(logo, W/2 - logoWidth/2, logoY, logoWidth, logoHeight); // centré horizontalement
+  let logoY = 100;
+  image(logo, W/2 - logoWidth/2, logoY, logoWidth, logoHeight);
   // Titre
-  fill(233, 46, 46); // rouge
-  textSize(36); text('FLAPPY FLYMAN', W/2, logoY + logoHeight + 50); // Position Y descendue
+  fill(233, 46, 46);
+  textSize(36);
+  text('FLAPPY FLYMAN', W/2, logoY + logoHeight + 50);
   // Avatar intro
-  let avatarWidth = 300; // largeur cible augmentée encore
+  let avatarWidth = 300;
   let avatarHeight = introFrames[0].height * (avatarWidth / introFrames[0].width);
-  let avatarY = 300; // Position Y de l'avatar descendue
+  let avatarY = 300;
   drawRocket(W/2, avatarY, introFrames, avatarWidth, avatarHeight);
   // Instruction
-  textSize(24); text('TAP or CLICK or SPACE', W/2, 450); // Position Y descendue
-  textSize(32); text('TO START', W/2, 500); // Position Y descendue
+  textSize(24);
+  text('TAP or CLICK or SPACE', W/2, 450);
+  textSize(32);
+  text('TO START', W/2, 500);
 }
 
 function drawOver() {
-  // Dessiner le fond
   image(backgroundGame, 0, 0, W, H);
-
-  // Animer le fond
   if (frameCount % 30 === 0) {
     backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
   }
   let bg = backgroundGameFrames[backgroundGameIdx];
-  let bgWidth = bg.width * 0.25; // Réduire de 75% (50% + 25%)
-  let bgHeight = bg.height * 0.25; // Réduire de 75% (50% + 25%)
-  let bgX = (W - bgWidth) / 2; // Centrer horizontalement
-  let bgY = H - bgHeight; // Aligner le bas de l'image avec le bas de l'écran
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  let bgX = (W - bgWidth) / 2;
+  let bgY = H - bgHeight;
+  image(bg, bgX, bgY, bgWidth, bgHeight);
 
-  image(bg, bgX, bgY, bgWidth, bgHeight); // Dessiner l'image de fond
-
-  fill(233, 46, 46); // rouge
-  textSize(36); text('GAME OVER', W/2, 100);
-  textSize(24); text(`Score : ${score}   Best : ${best}`, W/2, 150);
-  textSize(24); text('TAP or CLICK or SPACE to RESTART', W/2, 200);
+  fill(233, 46, 46);
+  textSize(36);
+  text('GAME OVER', W/2, 100);
+  textSize(24);
+  text(`Score : ${score}   Best : ${best}`, W/2, 150);
+  textSize(24);
+  text('TAP or CLICK or SPACE to RESTART', W/2, 200);
 }
 
 function drawPlay() {
-  // Dessiner le fond
   image(backgroundGame, 0, 0, W, H);
-
-  // Animer le fond
   if (frameCount % 30 === 0) {
     backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
   }
   let bg = backgroundGameFrames[backgroundGameIdx];
-  let bgWidth = bg.width * 0.25; // Réduire de 75% (50% + 25%)
-  let bgHeight = bg.height * 0.25; // Réduire de 75% (50% + 25%)
-  let bgX = (W - bgWidth) / 2; // Centrer horizontalement
-  let bgY = H - bgHeight; // Aligner le bas de l'image avec le bas de l'écran
-
-  image(bg, bgX, bgY, bgWidth, bgHeight); // Dessiner l'image de fond
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  let bgX = (W - bgWidth) / 2;
+  let bgY = H - bgHeight;
+  image(bg, bgX, bgY, bgWidth, bgHeight);
 
   rocket.vel += GRAVITY;
   rocket.y += rocket.vel;
@@ -151,7 +149,6 @@ function drawPlay() {
     }
   }
 
-  // Poulets
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
     c.x -= SPEED * 2.5;
@@ -161,7 +158,6 @@ function drawPlay() {
     if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
   }
 
-  // Pics
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let p = obstacles[i];
     p.x -= SPEED;
@@ -171,7 +167,7 @@ function drawPlay() {
     if (!p.passed && p.x + p.w < rocket.x) { p.passed = true; score++; }
   }
 
-  fill(233, 46, 46); // rouge
+  fill(233, 46, 46);
   textSize(36);
   text(score, W/2, 60);
 }
@@ -210,27 +206,27 @@ function makePic() {
   let y, w, h, hitboxW;
   switch (picNames[idx]) {
     case 'pic_petit_haut.png':
-      w = 80 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      h = 80 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      hitboxW = 20; // Largeur de la hitbox réduite à 20 pixels
+      w = 80 * 0.7 * 1.5;
+      h = 80 * 0.7 * 1.5;
+      hitboxW = 20;
       y = 0;
       break;
     case 'pic_petit_bas.png':
-      w = 80 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      h = 80 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      hitboxW = 20; // Largeur de la hitbox réduite à 20 pixels
+      w = 80 * 0.7 * 1.5;
+      h = 80 * 0.7 * 1.5;
+      hitboxW = 20;
       y = H - h;
       break;
     case 'pic_gros_haut.png':
-      w = 120 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      h = 120 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      hitboxW = 40; // Largeur de la hitbox réduite à 40 pixels
+      w = 120 * 0.7 * 1.5;
+      h = 120 * 0.7 * 1.5;
+      hitboxW = 40;
       y = 0;
       break;
     case 'pic_gros_bas.png':
-      w = 120 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      h = 120 * 0.7 * 1.5; // Réduire de 30% puis augmenter de 50%
-      hitboxW = 40; // Largeur de la hitbox réduite à 40 pixels
+      w = 120 * 0.7 * 1.5;
+      h = 120 * 0.7 * 1.5;
+      hitboxW = 40;
       y = H - h;
       break;
   }
@@ -238,8 +234,8 @@ function makePic() {
 }
 
 function hitRocket(r, o) {
-  const wR = 100;   // Largeur de l'avatar
-  const hR = 34;    // Hauteur de l'avatar
+  const wR = 100;
+  const hR = 34;
   return (r.x - wR/2 < o.x + o.w && r.x + wR/2 > o.x) &&
          (r.y - hR/2 < o.y + o.h && r.y + hR/2 > o.y);
 }
@@ -249,20 +245,6 @@ function resetGame() {
   enemies = [];
   obstacles = [];
   score = 0;
-}
-
-function startMusic() {
-  if (main && main.isLoaded()) {
-    if (main.isPlaying()) return;
-    main.play();
-    main.setLoop(true);
-  }
-}
-
-function stopMusic() {
-  if (main && main.isPlaying()) {
-    main.stop();
-  }
 }
 
 function gameOver() {
@@ -275,7 +257,9 @@ function keyPressed() {
   if (key === ' ') action();
 }
 
-function mousePressed() { action(); }
+function mousePressed() {
+  action();
+}
 
 function action() {
   if (state === 'start') {
@@ -289,4 +273,24 @@ function action() {
     state = 'play';
     startMusic();
   }
+}
+
+function startMusic() {
+  if (main && main.isLoaded()) {
+    if (main.isPlaying()) {
+      return;
+    }
+    main.play();
+    main.setLoop(true);
+  }
+}
+
+function stopMusic() {
+  if (main && main.isPlaying()) {
+    main.stop();
+  }
+}
+
+function windowResized() {
+  centerCanvas();
 }
