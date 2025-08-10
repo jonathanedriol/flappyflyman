@@ -1,4 +1,4 @@
-// Flappy Flyman – version stabilisée + diagonales poulets à partir de 20 points + son ok
+// Flappy Flyman – version avec trajectoires diagonales poulets à partir de 20 points + audio stabilisée
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -120,7 +120,10 @@ function drawPlay() {
   drawRocket(rocket.x, rocket.y);
   if (rocket.y < 0 || rocket.y > H) gameOver();
 
+  // Vitesse pics
   let picSpeed = SPEED + score * 0.05;
+
+  // Vitesse poulets à +30%
   let chickenSpeed = picSpeed * 1.3;
 
   let enemyFrequency = max(60, 120 - score * 1.5);
@@ -132,15 +135,16 @@ function drawPlay() {
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
 
+    // À partir de 20 points, gestion diagonale aléatoire
     if (score >= 20) {
       if (c.vx === undefined) {
-        const v = chickenSpeed / Math.sqrt(2);
         if (random() < 0.5) {
+          const v = chickenSpeed / Math.sqrt(2);
           c.vx = -v;
-          c.vy = v;
+          c.vy = random() < 0.5 ? -v : v;
         } else {
-          c.vx = -v;
-          c.vy = -v;
+          c.vx = -chickenSpeed;
+          c.vy = 0;
         }
       }
       c.x += c.vx;
@@ -158,12 +162,10 @@ function drawPlay() {
     }
 
     drawChicken(c);
+
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
-    if (!c.passed && c.x + c.w < rocket.x) {
-      c.passed = true;
-      score++;
-    }
+    if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
   }
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -172,10 +174,7 @@ function drawPlay() {
     drawPic(p);
     if (p.x + p.w < 0) obstacles.splice(i, 1);
     if (hitRocket(rocket, p)) gameOver();
-    if (!p.passed && p.x + p.w < rocket.x) {
-      p.passed = true;
-      score++;
-    }
+    if (!p.passed && p.x + p.w < rocket.x) { p.passed = true; score++; }
   }
 
   fill(233, 46, 46);
@@ -204,22 +203,22 @@ function makePic() {
   const img = picImgs[idx];
   let y, w, h, hitboxW;
   switch (picNames[idx]) {
-    case 'pic_petit_haut.png': w = h = 80 * 1.05; hitboxW = 20; y = 0; break;
-    case 'pic_petit_bas.png': w = h = 80 * 1.05; hitboxW = 20; y = H - h; break;
-    case 'pic_gros_haut.png': w = h = 120 * 1.05; hitboxW = 40; y = 0; break;
-    case 'pic_gros_bas.png': w = h = 120 * 1.05; hitboxW = 40; y = H - h; break;
+    case 'pic_petit_haut.png': w=h=80*1.05; hitboxW=20; y=0; break;
+    case 'pic_petit_bas.png':  w=h=80*1.05; hitboxW=20; y=H-h; break;
+    case 'pic_gros_haut.png':  w=h=120*1.05; hitboxW=40; y=0; break;
+    case 'pic_gros_bas.png':   w=h=120*1.05; hitboxW=40; y=H-h; break;
   }
   return { x: W, y, w, h, hitboxW, img, passed: false };
 }
 
 function hitRocket(r, o) {
   const wR = 100, hR = 34;
-  return (r.x - wR / 2 < o.x + o.w && r.x + wR / 2 > o.x) &&
-         (r.y - hR / 2 < o.y + o.h && r.y + hR / 2 > o.y);
+  return (r.x - wR/2 < o.x + o.w && r.x + wR/2 > o.x) &&
+         (r.y - hR/2 < o.y + o.h && r.y + hR/2 > o.y);
 }
 
 function resetGame() {
-  rocket = { x: 100, y: H / 2, vel: 0 };
+  rocket = { x: 100, y: H/2, vel: 0 };
   enemies = [];
   obstacles = [];
   score = 0;
@@ -246,6 +245,14 @@ function gameOver() {
   stopMusic();
 }
 
+function keyPressed() {
+  if (key === ' ') action();
+}
+
+function mousePressed() {
+  action();
+}
+
 function action() {
   if (state === 'start') {
     resetGame();
@@ -258,12 +265,4 @@ function action() {
     state = 'play';
     startMusic();
   }
-}
-
-function keyPressed() {
-  if (key === ' ') action();
-}
-
-function mousePressed() {
-  action();
 }
