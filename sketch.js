@@ -1,7 +1,4 @@
-// Flappy Flyman – version avec trajectoires diagonales poulets à partir de 20 points
-// + missiles pixels lancés par poulets à partir de 40 points
-
-let rocket, enemies = [], obstacles = [], missiles = [], score = 0, best = 0;
+let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
 let introFrames = [];
@@ -13,7 +10,8 @@ let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
-const MISSILE_SIZE = 10;
+
+const MISSILE_SIZE = 5;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -53,6 +51,7 @@ function centerCanvas() {
   const canvasHeight = H * scaleFactor;
   canvas.style('width', `${canvasWidth}px`);
   canvas.style('height', `${canvasHeight}px`);
+
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
@@ -122,24 +121,18 @@ function drawPlay() {
   drawRocket(rocket.x, rocket.y);
   if (rocket.y < 0 || rocket.y > H) gameOver();
 
-  // Vitesse pics
   let picSpeed = SPEED + score * 0.05;
-
-  // Vitesse poulets à +30%
   let chickenSpeed = picSpeed * 1.3;
 
-  // Génération ennemis
   let enemyFrequency = max(60, 120 - score * 1.5);
   if (frameCount % enemyFrequency === 0) {
     if (random() > 0.5) enemies.push(makeChicken());
     else obstacles.push(makePic());
   }
 
-  // Gestion ennemis (poulets)
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
 
-    // À partir de 20 points, trajectoires diagonales possibles
     if (score >= 20) {
       if (c.vx === undefined) {
         if (random() < 0.5) {
@@ -153,8 +146,6 @@ function drawPlay() {
       }
       c.x += c.vx;
       c.y += c.vy;
-
-      // Rebond haut/bas
       if (c.y < 0) {
         c.y = 0;
         c.vy = -c.vy;
@@ -168,66 +159,71 @@ function drawPlay() {
 
     drawChicken(c);
 
-    if (c.x + c.w < 0) enemies.splice(i, 1);
-    if (hitRocket(rocket, c)) gameOver();
-    if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
-  }
+    // Gestion des missiles au score >= 40 (pour test, mettre score >= 0)
+    if (!c.missiles) c.missiles = [];
 
-  // Gestion missiles lancés par poulets à partir de 40 points
-  if (score >= 1) {
-    enemies.forEach(enemy => {
-      if (random() < 0.01) { // 1% chance par frame de lancer 1 ou 2 missiles
-        const nbMissiles = random() < 0.5 ? 1 : 2;
-        for (let i = 0; i < nbMissiles; i++) {
-          missiles.push({
-            x: enemy.x + 50,  // bec poulet (ajuste si besoin)
-            y: enemy.y + 25,
-            vx: enemy.vx !== undefined ? enemy.vx : -chickenSpeed,
-            vy: enemy.vy !== undefined ? enemy.vy : 0,
+    if (score >= 0) {
+      if (frameCount % 20 === 0) {
+        if (random() < 0.5 && c.missiles.length < 2) {
+          // Position missile au niveau de la tête du poulet (centre de l'image 50x50, tête ~25,25)
+          const startX = c.x + 25 + MISSILE_SIZE / 2;
+          const startY = c.y + 25 - MISSILE_SIZE / 2;
+          const speedMultiplier = 2;
+          c.missiles.push({
+            x: startX,
+            y: startY,
             w: MISSILE_SIZE,
             h: MISSILE_SIZE,
+            vx: c.vx * speedMultiplier,
+            vy: c.vy * speedMultiplier,
           });
         }
       }
-    });
-  }
 
-  // Déplacement et affichage missiles
-  for (let i = missiles.length -1; i >= 0; i--) {
-    let m = missiles[i];
-    m.x += m.vx;
-    m.y += m.vy;
+      for (let j = c.missiles.length - 1; j >= 0; j--) {
+        let m = c.missiles[j];
+        m.x += m.vx;
+        m.y += m.vy;
 
-    push();
-    noStroke();
-    fill(255);
-    rect(m.x, m.y, m.w, m.h);
-    pop();
+        push();
+        noStroke();
+        fill(255);
+        rect(m.x, m.y, m.w, m.h);
+        pop();
 
-    // Supprime si hors écran
-    if (m.x + m.w < 0 || m.y + m.h < 0 || m.y > H) {
-      missiles.splice(i, 1);
-      continue;
+        if (hitRocket(rocket, m)) {
+          gameOver();
+        }
+
+        if (m.x < 0 || m.x > W || m.y < 0 || m.y > H) {
+          c.missiles.splice(j, 1);
+        }
+      }
     }
 
-    if (hitRocket(m, rocket)) {
-      gameOver();
+    if (c.x + c.w < 0) enemies.splice(i, 1);
+    if (hitRocket(rocket, c)) gameOver();
+    if (!c.passed && c.x + c.w < rocket.x) {
+      c.passed = true;
+      score++;
     }
   }
 
-  // Gestion obstacles (pics)
   for (let i = obstacles.length - 1; i >= 0; i--) {
     let p = obstacles[i];
     p.x -= picSpeed;
     drawPic(p);
     if (p.x + p.w < 0) obstacles.splice(i, 1);
     if (hitRocket(rocket, p)) gameOver();
-    if (!p.passed && p.x + p.w < rocket.x) { p.passed = true; score++; }
+    if (!p.passed && p.x + p.w < rocket.x) {
+      p.passed = true;
+      score++;
+    }
   }
 
   fill(233, 46, 46);
   textSize(36);
-  text(score, W/2, 60);
+  text(score, W / 2, 60);
 }
 
 function drawChicken(c) {
@@ -238,9 +234,13 @@ function drawChicken(c) {
   pop();
 }
 
-function drawPic(p) { image(p.img, p.x, p.y, p.w, p.h); }
+function drawPic(p) {
+  image(p.img, p.x, p.y, p.w, p.h);
+}
 
-function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false }; }
+function makeChicken() {
+  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false, missiles: [] };
+}
 
 function makePic() {
   const idx = floor(random(4));
@@ -255,19 +255,16 @@ function makePic() {
   return { x: W, y, w, h, hitboxW, img, passed: false };
 }
 
-function hitRocket(obj, r) {
+function hitRocket(r, o) {
   const wR = 100, hR = 34;
-  const wO = obj.w || 0;
-  const hO = obj.h || 0;
-  return (r.x - wR/2 < obj.x + wO && r.x + wR/2 > obj.x) &&
-         (r.y - hR/2 < obj.y + hO && r.y + hR/2 > obj.y);
+  return (r.x - wR/2 < o.x + o.w && r.x + wR/2 > o.x) &&
+         (r.y - hR/2 < o.y + o.h && r.y + hR/2 > o.y);
 }
 
 function resetGame() {
   rocket = { x: 100, y: H/2, vel: 0 };
   enemies = [];
   obstacles = [];
-  missiles = [];
   score = 0;
 }
 
@@ -277,12 +274,18 @@ function gameOver() {
   if (mainMusic && mainMusic.isPlaying()) mainMusic.stop();
 }
 
-function keyPressed() { if (key === ' ') action(); }
-function mousePressed() { action(); }
+function keyPressed() {
+  if (key === ' ') action();
+}
+
+function mousePressed() {
+  action();
+}
 
 function action() {
   if (state === 'start') {
-    resetGame(); state = 'play';
+    resetGame();
+    state = 'play';
     if (mainMusic) {
       mainMusic.stop();
       mainMusic.play();
@@ -291,11 +294,27 @@ function action() {
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
-    resetGame(); state = 'play';
+    resetGame();
+    state = 'play';
     if (mainMusic) {
       mainMusic.stop();
       mainMusic.play();
       mainMusic.loop();
     }
+  }
+}
+
+function startMusic() {
+  if (mainMusic && mainMusic.isLoaded()) {
+    if (!mainMusic.isPlaying()) {
+      mainMusic.play();
+      mainMusic.setLoop(true);
+    }
+  }
+}
+
+function stopMusic() {
+  if (mainMusic && mainMusic.isPlaying()) {
+    mainMusic.stop();
   }
 }
