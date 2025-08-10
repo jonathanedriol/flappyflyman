@@ -1,32 +1,26 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
   <title>Flappy Flyman</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.12.0/p5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.12.0/addons/p5.sound.min.js"></script>
-  <script src="sketch.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+  <link rel="stylesheet" href="style.css">
   <style>
-    body {
-      margin: 0; 
-      background: #001e38;
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      height: 100vh;
-      overflow: hidden;
-      font-family: monospace;
-      color: #e92e2e;
+    html, body {
+      overscroll-behavior: none;
+      -webkit-user-select: none;
       user-select: none;
-    }
-    canvas {
-      display: block;
-      margin: auto;
-      image-rendering: pixelated;
+      touch-action: none;
     }
   </style>
+  <script>
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('dblclick', e => e.preventDefault());
+  </script>
 </head>
 <body>
+  <script src="sketch.js"></script>
 </body>
 </html>
