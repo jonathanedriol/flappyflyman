@@ -174,7 +174,7 @@ function drawPlay() {
   }
 
   // Gestion missiles lancés par poulets à partir de 40 points
-  if (score >= 40) {
+  if (score >= 1) {
     enemies.forEach(enemy => {
       if (random() < 0.01) { // 1% chance par frame de lancer 1 ou 2 missiles
         const nbMissiles = random() < 0.5 ? 1 : 2;
