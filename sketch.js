@@ -1,4 +1,4 @@
-// Flappy Flyman – version avec trajectoires diagonales poulets à partir de 20 points
+// Flappy Flyman – version avec trajectoires diagonales poulets à partir de 20 points + audio d'origine
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -10,7 +10,9 @@ let SPEED = 1.5, ROCKET_RATE = 6, CHICKEN_RATE = 8;
 let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
-let mainMusic;
+
+let mainMusicMp3, mainMusicOgg;
+let mainMusic; // pour le son en cours
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -32,7 +34,9 @@ function preload() {
   for (let i = 128; i >= 1; i--) {
     backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
   }
-  mainMusic = loadSound('sounds/main.mp3');
+  // Chargement 2 formats audio
+  mainMusicMp3 = loadSound('sounds/main.mp3');
+  mainMusicOgg = loadSound('sounds/main.ogg');
 }
 
 function setup() {
@@ -42,6 +46,10 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
+
+  // Choix aléatoire du format audio au démarrage
+  if (random() < 0.5) mainMusic = mainMusicMp3;
+  else mainMusic = mainMusicOgg;
 }
 
 function centerCanvas() {
@@ -239,7 +247,8 @@ function mousePressed() { action(); }
 
 function action() {
   if (state === 'start') {
-    resetGame(); state = 'play';
+    resetGame(); 
+    state = 'play';
     if (mainMusic) { 
       mainMusic.stop(); 
       mainMusic.play();
@@ -248,7 +257,8 @@ function action() {
   } else if (state === 'play') {
     rocket.vel = FLAP;
   } else if (state === 'over') {
-    resetGame(); state = 'play';
+    resetGame(); 
+    state = 'play';
     if (mainMusic) { 
       mainMusic.stop(); 
       mainMusic.play();
