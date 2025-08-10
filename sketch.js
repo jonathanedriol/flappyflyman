@@ -11,6 +11,9 @@ let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
 
+// AUDIO
+let main;
+
 function preload() {
   // avatar
   for (let i = 0; i < 6; i++) {
@@ -42,6 +45,8 @@ function preload() {
     let num = i.toString().padStart(3, '0');
     backgroundGameFrames[128 - i] = loadImage(`sprites/background_${num}.png`);
   }
+  // AUDIO - charger musique principale
+  main = loadSound('audio/main.mp3');
 }
 
 function setup() {
@@ -246,9 +251,24 @@ function resetGame() {
   score = 0;
 }
 
+function startMusic() {
+  if (main && main.isLoaded()) {
+    if (main.isPlaying()) return;
+    main.play();
+    main.setLoop(true);
+  }
+}
+
+function stopMusic() {
+  if (main && main.isPlaying()) {
+    main.stop();
+  }
+}
+
 function gameOver() {
   state = 'over';
   best = max(score, best);
+  stopMusic();
 }
 
 function keyPressed() {
@@ -258,7 +278,15 @@ function keyPressed() {
 function mousePressed() { action(); }
 
 function action() {
-  if (state === 'start') { resetGame(); state = 'play'; }
-  else if (state === 'play') rocket.vel = FLAP;
-  else if (state === 'over') { resetGame(); state = 'play'; }
+  if (state === 'start') {
+    resetGame();
+    state = 'play';
+    startMusic();
+  } else if (state === 'play') {
+    rocket.vel = FLAP;
+  } else if (state === 'over') {
+    resetGame();
+    state = 'play';
+    startMusic();
+  }
 }
