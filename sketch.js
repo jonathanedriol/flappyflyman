@@ -162,7 +162,7 @@ function drawPlay() {
     // Gestion des missiles au score >= 40 (pour test, mettre score >= 0)
     if (!c.missiles) c.missiles = [];
 
-    if (score >= 40) {
+    if (score >= 0) {
       if (frameCount % 20 === 0) {
         if (random() < 0.5 && c.missiles.length < 2) {
           // Position missile au niveau de la tête du poulet (centre de l'image 50x50, tête ~25,25)
