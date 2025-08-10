@@ -1,3 +1,4 @@
+// Flappy Flyman – version stabilisée + diagonales poulets à partir de 20 points + son ok
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -10,8 +11,6 @@ let state = 'start';
 let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
-
-const MISSILE_SIZE = 5;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -135,17 +134,18 @@ function drawPlay() {
 
     if (score >= 20) {
       if (c.vx === undefined) {
+        const v = chickenSpeed / Math.sqrt(2);
         if (random() < 0.5) {
-          const v = chickenSpeed / Math.sqrt(2);
           c.vx = -v;
-          c.vy = random() < 0.5 ? -v : v;
+          c.vy = v;
         } else {
-          c.vx = -chickenSpeed;
-          c.vy = 0;
+          c.vx = -v;
+          c.vy = -v;
         }
       }
       c.x += c.vx;
       c.y += c.vy;
+
       if (c.y < 0) {
         c.y = 0;
         c.vy = -c.vy;
@@ -158,49 +158,6 @@ function drawPlay() {
     }
 
     drawChicken(c);
-
-    // Gestion des missiles au score >= 40 (pour test, mettre score >= 0)
-    if (!c.missiles) c.missiles = [];
-
-    if (score >= 40) {
-      if (frameCount % 20 === 0) {
-        if (random() < 0.5 && c.missiles.length < 2) {
-          // Position missile au niveau de la tête du poulet (centre de l'image 50x50, tête ~25,25)
-          const startX = c.x + 25 + MISSILE_SIZE / 2;
-          const startY = c.y + 25 - MISSILE_SIZE / 2;
-          const speedMultiplier = 2;
-          c.missiles.push({
-            x: startX,
-            y: startY,
-            w: MISSILE_SIZE,
-            h: MISSILE_SIZE,
-            vx: c.vx * speedMultiplier,
-            vy: c.vy * speedMultiplier,
-          });
-        }
-      }
-
-      for (let j = c.missiles.length - 1; j >= 0; j--) {
-        let m = c.missiles[j];
-        m.x += m.vx;
-        m.y += m.vy;
-
-        push();
-        noStroke();
-        fill(255);
-        rect(m.x, m.y, m.w, m.h);
-        pop();
-
-        if (hitRocket(rocket, m)) {
-          gameOver();
-        }
-
-        if (m.x < 0 || m.x > W || m.y < 0 || m.y > H) {
-          c.missiles.splice(j, 1);
-        }
-      }
-    }
-
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
     if (!c.passed && c.x + c.w < rocket.x) {
@@ -223,7 +180,7 @@ function drawPlay() {
 
   fill(233, 46, 46);
   textSize(36);
-  text(score, W / 2, 60);
+  text(score, W/2, 60);
 }
 
 function drawChicken(c) {
@@ -239,7 +196,7 @@ function drawPic(p) {
 }
 
 function makeChicken() {
-  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false, missiles: [] };
+  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false };
 }
 
 function makePic() {
@@ -247,61 +204,25 @@ function makePic() {
   const img = picImgs[idx];
   let y, w, h, hitboxW;
   switch (picNames[idx]) {
-    case 'pic_petit_haut.png': w=h=80*1.05; hitboxW=20; y=0; break;
-    case 'pic_petit_bas.png':  w=h=80*1.05; hitboxW=20; y=H-h; break;
-    case 'pic_gros_haut.png':  w=h=120*1.05; hitboxW=40; y=0; break;
-    case 'pic_gros_bas.png':   w=h=120*1.05; hitboxW=40; y=H-h; break;
+    case 'pic_petit_haut.png': w = h = 80 * 1.05; hitboxW = 20; y = 0; break;
+    case 'pic_petit_bas.png': w = h = 80 * 1.05; hitboxW = 20; y = H - h; break;
+    case 'pic_gros_haut.png': w = h = 120 * 1.05; hitboxW = 40; y = 0; break;
+    case 'pic_gros_bas.png': w = h = 120 * 1.05; hitboxW = 40; y = H - h; break;
   }
   return { x: W, y, w, h, hitboxW, img, passed: false };
 }
 
 function hitRocket(r, o) {
   const wR = 100, hR = 34;
-  return (r.x - wR/2 < o.x + o.w && r.x + wR/2 > o.x) &&
-         (r.y - hR/2 < o.y + o.h && r.y + hR/2 > o.y);
+  return (r.x - wR / 2 < o.x + o.w && r.x + wR / 2 > o.x) &&
+         (r.y - hR / 2 < o.y + o.h && r.y + hR / 2 > o.y);
 }
 
 function resetGame() {
-  rocket = { x: 100, y: H/2, vel: 0 };
+  rocket = { x: 100, y: H / 2, vel: 0 };
   enemies = [];
   obstacles = [];
   score = 0;
-}
-
-function gameOver() {
-  state = 'over';
-  best = max(score, best);
-  if (mainMusic && mainMusic.isPlaying()) mainMusic.stop();
-}
-
-function keyPressed() {
-  if (key === ' ') action();
-}
-
-function mousePressed() {
-  action();
-}
-
-function action() {
-  if (state === 'start') {
-    resetGame();
-    state = 'play';
-    if (mainMusic) {
-      mainMusic.stop();
-      mainMusic.play();
-      mainMusic.loop();
-    }
-  } else if (state === 'play') {
-    rocket.vel = FLAP;
-  } else if (state === 'over') {
-    resetGame();
-    state = 'play';
-    if (mainMusic) {
-      mainMusic.stop();
-      mainMusic.play();
-      mainMusic.loop();
-    }
-  }
 }
 
 function startMusic() {
@@ -317,4 +238,32 @@ function stopMusic() {
   if (mainMusic && mainMusic.isPlaying()) {
     mainMusic.stop();
   }
+}
+
+function gameOver() {
+  state = 'over';
+  best = max(score, best);
+  stopMusic();
+}
+
+function action() {
+  if (state === 'start') {
+    resetGame();
+    state = 'play';
+    startMusic();
+  } else if (state === 'play') {
+    rocket.vel = FLAP;
+  } else if (state === 'over') {
+    resetGame();
+    state = 'play';
+    startMusic();
+  }
+}
+
+function keyPressed() {
+  if (key === ' ') action();
+}
+
+function mousePressed() {
+  action();
 }
