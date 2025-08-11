@@ -38,7 +38,7 @@ const phrases = [
 ];
 let currentPhrase = "";
 
-// --- preload ---
+// --- preload, setup, etc restent identiques ---
 function preload() {
   for (let i = 0; i < 6; i++) {
     rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
@@ -62,7 +62,6 @@ function preload() {
   mainMusic = loadSound('sounds/main.mp3');
 }
 
-// --- setup ---
 function setup() {
   canvas = createCanvas(W, H);
   centerCanvas();
@@ -85,7 +84,6 @@ function centerCanvas() {
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
 
-  // Positionner le bouton Spotify au même centre horizontalement
   positionSpotifyButton();
 }
 
@@ -93,7 +91,8 @@ function windowResized() {
   centerCanvas();
 }
 
-// --- draw ---
+// --- DESSINS & LOGIQUE DE JEU ---
+
 function draw() {
   background('#001e38');
   switch (state) {
@@ -288,44 +287,44 @@ function createSpotifyButton() {
   btn.target = '_blank';
   btn.rel = 'noopener noreferrer';
   btn.textContent = '🎵 Listen on Spotify';
-
   Object.assign(btn.style, {
     position: 'fixed',
-    bottom: '80px',
+    bottom: '60px',  // bouton remonté
     left: '50%',
     transform: 'translateX(-50%)',
     padding: '14px 32px',
-    backgroundColor: '#1DB954',
-    color: '#fff',
+    background: '#000',
+    color: '#4ade80',
     borderRadius: '30px',
     fontWeight: '700',
     fontSize: '18px',
     textDecoration: 'none',
     textAlign: 'center',
-    boxShadow: '0 0 12px #1DB954',
+    boxShadow: '0 0 12px #4ade80',
     cursor: 'pointer',
     userSelect: 'none',
-    zIndex: '10000',
+    zIndex: '1000',
     animation: 'pulse 2.5s infinite ease-in-out',
     display: 'none',
   });
 
-  // Bloquer propagation clic pour ne pas relancer jeu
-  btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-  });
-  btn.addEventListener('pointerdown', function(e) {
+  // Stopper la propagation du clic pour éviter relancer le jeu
+  btn.addEventListener('click', e => {
     e.stopPropagation();
   });
 
-  // Ajout animation CSS pulse si pas déjà injectée
+  // Injection animation pulse CSS si pas déjà injectée
   if (!document.getElementById('pulseAnimation')) {
     const style = document.createElement('style');
     style.id = 'pulseAnimation';
     style.textContent = `
       @keyframes pulse {
-        0%, 100% { box-shadow: 0 0 12px #1DB954; }
-        50% { box-shadow: 0 0 22px #1DB954; }
+        0%, 100% {
+          box-shadow: 0 0 12px #4ade80;
+        }
+        50% {
+          box-shadow: 0 0 22px #4ade80;
+        }
       }
     `;
     document.head.appendChild(style);
@@ -334,6 +333,7 @@ function createSpotifyButton() {
   document.body.appendChild(btn);
 }
 
+// --- Fonctions pour afficher/cacher le bouton Spotify ---
 function showSpotifyButton() {
   const btn = document.getElementById('spotify-button');
   if (btn) btn.style.display = 'block';
@@ -344,13 +344,14 @@ function hideSpotifyButton() {
   if (btn) btn.style.display = 'none';
 }
 
+// --- Positionne le bouton Spotify au centre horizontal, à 60px du bas ---
 function positionSpotifyButton() {
   const btn = document.getElementById('spotify-button');
   if (!btn) return;
-  btn.style.bottom = '80px'; // fixe la distance du bas
+  btn.style.bottom = '60px';
 }
 
-// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + bouton ---
+// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + (plus d'instructions) ---
 function drawOver() {
   image(backgroundGame, 0, 0, W, H);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
@@ -361,11 +362,9 @@ function drawOver() {
 
   textAlign(CENTER, CENTER);
 
-  // Phrase humoristique en jaune, avec marge horizontale
-  fill(255, 223, 0);
+  // Phrase humoristique en jaune, avec marge horizontale, wrap si trop large
+  fill(255, 223, 0); // jaune
   textSize(28);
-
-  // Si trop long, fractionne en plusieurs lignes
   let phraseMaxWidth = W * 0.9;
   if (textWidth(currentPhrase) > phraseMaxWidth) {
     let words = currentPhrase.split(' ');
@@ -388,12 +387,12 @@ function drawOver() {
     text(currentPhrase, W / 2, 120);
   }
 
-  // Score & Best en rouge, plus compact
+  // Score & Best en rouge en haut, taille plus petite, centré
   fill(233, 46, 46);
-  textSize(28);
+  textSize(24);
   text(`Score: ${score}    Best: ${best}`, W / 2, 60);
 
-  // Le bouton Spotify apparaît via showSpotifyButton() — plus besoin d'instructions texte restart
+  // Plus aucune instruction de restart pour maximiser le CTA sur le bouton Spotify
 }
 
 // --- Input & contrôles ---
