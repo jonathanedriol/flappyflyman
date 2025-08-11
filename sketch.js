@@ -1,4 +1,4 @@
-// Flappy Flyman – version stabilisée + diagonales poulets à partir de 20 points + son ok
+// Flappy Flyman – version optimisée CTA Spotify
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -12,7 +12,6 @@ let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
 
-// --- NOUVEAU : variables phrases et lien Spotify ---
 const spotifyUrl = "https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=e9691dc8dcd64510";
 const phrases = [
   "You'll get 'em next time! 🚀",
@@ -38,20 +37,11 @@ const phrases = [
 ];
 let currentPhrase = "";
 
-// --- preload, setup, etc restent identiques ---
 function preload() {
-  for (let i = 0; i < 6; i++) {
-    rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
-  }
-  for (let i = 0; i < 2; i++) {
-    chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2, '0')}.png`);
-  }
-  for (let i = 0; i < 4; i++) {
-    picImgs[i] = loadImage(`sprites/${picNames[i]}`);
-  }
-  for (let i = 0; i < 6; i++) {
-    introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
-  }
+  for (let i = 0; i < 6; i++) rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
+  for (let i = 0; i < 2; i++) chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2, '0')}.png`);
+  for (let i = 0; i < 4; i++) picImgs[i] = loadImage(`sprites/${picNames[i]}`);
+  for (let i = 0; i < 6; i++) introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
   backgroundIntro1 = loadImage('sprites/backgroundintro_00.png');
   backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
   logo = loadImage('sprites/logo.png');
@@ -69,8 +59,7 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-
-  createSpotifyButton(); // Crée le bouton dès setup, caché au départ
+  createSpotifyButton();
 }
 
 function centerCanvas() {
@@ -79,45 +68,27 @@ function centerCanvas() {
   const canvasHeight = H * scaleFactor;
   canvas.style('width', `${canvasWidth}px`);
   canvas.style('height', `${canvasHeight}px`);
-
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
-
-  // Positionner le bouton Spotify au même centre horizontalement
   positionSpotifyButton();
 }
 
-function windowResized() {
-  centerCanvas();
-}
-
-// --- DESSINS & LOGIQUE DE JEU ---
+function windowResized() { centerCanvas(); }
 
 function draw() {
   background('#001e38');
   switch (state) {
-    case 'start': 
-      drawStart(); 
-      hideSpotifyButton(); 
-      break;
-    case 'play':  
-      drawPlay();  
-      hideSpotifyButton(); 
-      break;
-    case 'over':  
-      drawOver();  
-      showSpotifyButton(); 
-      break;
+    case 'start': drawStart(); hideSpotifyButton(); break;
+    case 'play': drawPlay(); hideSpotifyButton(); break;
+    case 'over': drawOver(); showSpotifyButton(); break;
   }
 }
 
 function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
   push();
   imageMode(CENTER);
-  if (frameCount % (60 / ROCKET_RATE) === 0) {
-    rocketIdx = (rocketIdx + 1) % frames.length;
-  }
+  if (frameCount % (60 / ROCKET_RATE) === 0) rocketIdx = (rocketIdx + 1) % frames.length;
   image(frames[rocketIdx], x, y, width, height);
   pop();
 }
@@ -150,7 +121,6 @@ function drawPlay() {
 
   let picSpeed = SPEED + score * 0.05;
   let chickenSpeed = picSpeed * 1.3;
-
   let enemyFrequency = max(60, 120 - score * 1.5);
   if (frameCount % enemyFrequency === 0) {
     if (random() > 0.5) enemies.push(makeChicken());
@@ -159,39 +129,19 @@ function drawPlay() {
 
   for (let i = enemies.length - 1; i >= 0; i--) {
     let c = enemies[i];
-
     if (score >= 20) {
       if (c.vx === undefined) {
         const v = chickenSpeed / Math.sqrt(2);
-        if (random() < 0.5) {
-          c.vx = -v;
-          c.vy = v;
-        } else {
-          c.vx = -v;
-          c.vy = -v;
-        }
+        if (random() < 0.5) { c.vx = -v; c.vy = v; }
+        else { c.vx = -v; c.vy = -v; }
       }
-      c.x += c.vx;
-      c.y += c.vy;
-
-      if (c.y < 0) {
-        c.y = 0;
-        c.vy = -c.vy;
-      } else if (c.y + c.h > H) {
-        c.y = H - c.h;
-        c.vy = -c.vy;
-      }
-    } else {
-      c.x -= chickenSpeed;
-    }
-
+      c.x += c.vx; c.y += c.vy;
+      if (c.y < 0 || c.y + c.h > H) c.vy = -c.vy;
+    } else c.x -= chickenSpeed;
     drawChicken(c);
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
-    if (!c.passed && c.x + c.w < rocket.x) {
-      c.passed = true;
-      score++;
-    }
+    if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
   }
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -200,10 +150,7 @@ function drawPlay() {
     drawPic(p);
     if (p.x + p.w < 0) obstacles.splice(i, 1);
     if (hitRocket(rocket, p)) gameOver();
-    if (!p.passed && p.x + p.w < rocket.x) {
-      p.passed = true;
-      score++;
-    }
+    if (!p.passed && p.x + p.w < rocket.x) { p.passed = true; score++; }
   }
 
   fill(233, 46, 46);
@@ -219,70 +166,43 @@ function drawChicken(c) {
   pop();
 }
 
-function drawPic(p) {
-  image(p.img, p.x, p.y, p.w, p.h);
-}
+function drawPic(p) { image(p.img, p.x, p.y, p.w, p.h); }
 
-function makeChicken() {
-  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false };
-}
+function makeChicken() { return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false }; }
 
 function makePic() {
-  const idx = floor(random(4));
-  const img = picImgs[idx];
+  const idx = floor(random(4)), img = picImgs[idx];
   let y, w, h, hitboxW;
   switch (picNames[idx]) {
-    case 'pic_petit_haut.png': w = h = 80 * 1.05; hitboxW = 20; y = 0; break;
-    case 'pic_petit_bas.png': w = h = 80 * 1.05; hitboxW = 20; y = H - h; break;
-    case 'pic_gros_haut.png': w = h = 120 * 1.05; hitboxW = 40; y = 0; break;
-    case 'pic_gros_bas.png': w = h = 120 * 1.05; hitboxW = 40; y = H - h; break;
+    case 'pic_petit_haut.png': w = h = 84; hitboxW = 20; y = 0; break;
+    case 'pic_petit_bas.png': w = h = 84; hitboxW = 20; y = H - h; break;
+    case 'pic_gros_haut.png': w = h = 126; hitboxW = 40; y = 0; break;
+    case 'pic_gros_bas.png': w = h = 126; hitboxW = 40; y = H - h; break;
   }
   return { x: W, y, w, h, hitboxW, img, passed: false };
 }
 
 function hitRocket(r, o) {
   const wR = 100, hR = 34;
-  return (r.x - wR / 2 < o.x + o.w && r.x + wR / 2 > o.x) &&
-         (r.y - hR / 2 < o.y + o.h && r.y + hR / 2 > o.y);
+  return (r.x - wR/2 < o.x + o.w && r.x + wR/2 > o.x) &&
+         (r.y - hR/2 < o.y + o.h && r.y + hR/2 > o.y);
 }
 
-function resetGame() {
-  rocket = { x: 100, y: H / 2, vel: 0 };
-  enemies = [];
-  obstacles = [];
-  score = 0;
-}
+function resetGame() { rocket = { x: 100, y: H/2, vel: 0 }; enemies = []; obstacles = []; score = 0; }
 
-// Gestion musique
-function startMusic() {
-  if (mainMusic && mainMusic.isLoaded()) {
-    if (!mainMusic.isPlaying()) {
-      mainMusic.play();
-      mainMusic.setLoop(true);
-    }
-  }
-}
+function startMusic() { if (mainMusic?.isLoaded() && !mainMusic.isPlaying()) { mainMusic.play(); mainMusic.setLoop(true); } }
+function stopMusic() { if (mainMusic?.isPlaying()) mainMusic.stop(); }
 
-function stopMusic() {
-  if (mainMusic && mainMusic.isPlaying()) {
-    mainMusic.stop();
-  }
-}
-
-// --- FONCTION gameOver modifiée pour mettre la phrase aléatoire ---
 function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
-
-  // Tirage phrase humoristique aléatoire à chaque game over
   currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 }
 
-// --- NOUVELLE FONCTION pour créer le bouton Spotify DOM au setup ---
 function createSpotifyButton() {
   if (document.getElementById('spotify-button')) return;
-  const btn = document.createElement('a'); // lien <a> au lieu de button
+  const btn = document.createElement('a');
   btn.id = 'spotify-button';
   btn.href = spotifyUrl;
   btn.target = '_blank';
@@ -290,110 +210,70 @@ function createSpotifyButton() {
   btn.textContent = '🎵 Listen on Spotify';
   Object.assign(btn.style, {
     position: 'fixed',
-    bottom: '30px',
+    bottom: '70px',
     left: '50%',
     transform: 'translateX(-50%)',
-    padding: '14px 32px',
+    padding: '16px 38px',
     background: '#000',
     color: '#4ade80',
     borderRadius: '30px',
     fontWeight: '700',
-    fontSize: '18px',
+    fontSize: '20px',
     textDecoration: 'none',
     textAlign: 'center',
-    boxShadow: '0 0 12px #4ade80',
+    boxShadow: '0 0 14px #4ade80',
     cursor: 'pointer',
     userSelect: 'none',
     zIndex: '1000',
     animation: 'pulse 2.5s infinite ease-in-out',
-    display: 'none', // caché par défaut
+    display: 'none',
   });
-
-  // Injection animation pulse CSS si pas déjà injectée
   if (!document.getElementById('pulseAnimation')) {
     const style = document.createElement('style');
     style.id = 'pulseAnimation';
-    style.textContent = `
-      @keyframes pulse {
-        0%, 100% {
-          box-shadow: 0 0 12px #4ade80;
-        }
-        50% {
-          box-shadow: 0 0 22px #4ade80;
-        }
-      }
-    `;
+    style.textContent = `@keyframes pulse { 0%,100%{box-shadow:0 0 14px #4ade80;} 50%{box-shadow:0 0 26px #4ade80;} }`;
     document.head.appendChild(style);
   }
-
   document.body.appendChild(btn);
 }
 
-// --- Fonctions pour afficher/cacher le bouton Spotify ---
-function showSpotifyButton() {
-  const btn = document.getElementById('spotify-button');
-  if (btn) btn.style.display = 'block';
-}
+function showSpotifyButton() { document.getElementById('spotify-button').style.display = 'block'; }
+function hideSpotifyButton() { document.getElementById('spotify-button').style.display = 'none'; }
+function positionSpotifyButton() { const btn = document.getElementById('spotify-button'); if (btn) btn.style.bottom = '70px'; }
 
-function hideSpotifyButton() {
-  const btn = document.getElementById('spotify-button');
-  if (btn) btn.style.display = 'none';
-}
-
-// --- Positionne le bouton Spotify au centre horizontal, à 30px du bas ---
-function positionSpotifyButton() {
-  const btn = document.getElementById('spotify-button');
-  if (!btn) return;
-  btn.style.bottom = '30px'; // fixe la distance du bas
-}
-
-// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + bouton ---
 function drawOver() {
   image(backgroundGame, 0, 0, W, H);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
   let bg = backgroundGameFrames[backgroundGameIdx];
-  let bgWidth = bg.width * 0.25;
-  let bgHeight = bg.height * 0.25;
-  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
+  let bgWidth = bg.width * 0.25, bgHeight = bg.height * 0.25;
+  image(bg, (W - bgWidth)/2, H - bgHeight, bgWidth, bgHeight);
 
-  // Phrase jaune humoristique en premier, bien centrée et espacée
+  textAlign(CENTER, CENTER);
+
   fill(255, 223, 0);
   textSize(28);
-  textAlign(CENTER, CENTER);
-  text(currentPhrase, W / 2, 140);
+  let phraseMaxWidth = W * 0.9;
+  if (textWidth(currentPhrase) > phraseMaxWidth) {
+    let words = currentPhrase.split(' '), lines = [], line = "";
+    for (let w of words) {
+      let testLine = line + (line ? " " : "") + w;
+      if (textWidth(testLine) > phraseMaxWidth) { lines.push(line); line = w; }
+      else line = testLine;
+    }
+    if (line) lines.push(line);
+    for (let i = 0; i < lines.length; i++) text(lines[i], W/2, 120 + i * 30);
+  } else text(currentPhrase, W/2, 120);
 
-  // Score & Best en haut, centrés, taille réduite pour pas déborder
   fill(233, 46, 46);
-  textSize(28);
-  text(`Score: ${score}    Best: ${best}`, W / 2, 80);
-
-  // Instructions restart plus bas
   textSize(24);
-  text('TAP or CLICK or SPACE', W / 2, 190);
-  textSize(32);
-  text('TO RESTART', W / 2, 230);
+  text(`Score: ${score}    Best: ${best}`, W / 2, 70);
 }
 
-// --- Input & contrôles ---
 function action() {
-  if (state === 'start') {
-    resetGame();
-    state = 'play';
-    startMusic();
-  } else if (state === 'play') {
-    rocket.vel = FLAP;
-  } else if (state === 'over') {
-    resetGame();
-    state = 'play';
-    startMusic();
-    hideSpotifyButton();
-  }
+  if (state === 'start') { resetGame(); state = 'play'; startMusic(); }
+  else if (state === 'play') { rocket.vel = FLAP; }
+  else if (state === 'over') { resetGame(); state = 'play'; startMusic(); hideSpotifyButton(); }
 }
 
-function keyPressed() {
-  if (key === ' ') action();
-}
-
-function mousePressed() {
-  action();
-}
+function keyPressed() { if (key === ' ') action(); }
+function mousePressed() { action(); }
