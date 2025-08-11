@@ -97,9 +97,18 @@ function windowResized() {
 function draw() {
   background('#001e38');
   switch (state) {
-    case 'start': drawStart(); hideSpotifyButton(); break;
-    case 'play':  drawPlay();  hideSpotifyButton(); break;
-    case 'over':  drawOver();  showSpotifyButton(); break;
+    case 'start': 
+      drawStart(); 
+      hideSpotifyButton(); 
+      break;
+    case 'play':  
+      drawPlay();  
+      hideSpotifyButton(); 
+      break;
+    case 'over':  
+      drawOver();  
+      showSpotifyButton(); 
+      break;
   }
 }
 
@@ -272,76 +281,73 @@ function gameOver() {
 
 // --- NOUVELLE FONCTION pour créer le bouton Spotify DOM au setup ---
 function createSpotifyButton() {
-  let btn = document.getElementById('spotifyBtn');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'spotifyBtn';
-    btn.textContent = "🎵 Listen on Spotify";
+  if (document.getElementById('spotify-button')) return;
+  const btn = document.createElement('a'); // lien <a> au lieu de button
+  btn.id = 'spotify-button';
+  btn.href = spotifyUrl;
+  btn.target = '_blank';
+  btn.rel = 'noopener noreferrer';
+  btn.textContent = '🎵 Listen on Spotify';
+  Object.assign(btn.style, {
+    position: 'fixed',
+    bottom: '30px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '14px 32px',
+    background: '#000',
+    color: '#4ade80',
+    borderRadius: '30px',
+    fontWeight: '700',
+    fontSize: '18px',
+    textDecoration: 'none',
+    textAlign: 'center',
+    boxShadow: '0 0 12px #4ade80',
+    cursor: 'pointer',
+    userSelect: 'none',
+    zIndex: '1000',
+    animation: 'pulse 2.5s infinite ease-in-out',
+    display: 'none', // caché par défaut
+  });
 
-    // Styles bouton
-    Object.assign(btn.style, {
-      position: 'fixed',
-      bottom: '40px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      padding: '16px 36px',
-      fontSize: '22px',
-      fontWeight: 'bold',
-      color: '#1DB954',
-      backgroundColor: '#000',
-      border: '3px solid #1DB954',
-      borderRadius: '30px',
-      cursor: 'pointer',
-      boxShadow: '0 0 10px #1DB954',
-      animation: 'pulse 2s infinite',
-      zIndex: 10000,
-      userSelect: 'none',
-      display: 'none', // caché au départ
-    });
-
-    // Injection animation pulse CSS si pas encore injectée
-    if (!document.getElementById('pulseAnimation')) {
-      const style = document.createElement('style');
-      style.id = 'pulseAnimation';
-      style.textContent = `
-        @keyframes pulse {
-          0% { box-shadow: 0 0 10px #1DB954; }
-          50% { box-shadow: 0 0 20px #1DB954; }
-          100% { box-shadow: 0 0 10px #1DB954; }
+  // Injection animation pulse CSS si pas déjà injectée
+  if (!document.getElementById('pulseAnimation')) {
+    const style = document.createElement('style');
+    style.id = 'pulseAnimation';
+    style.textContent = `
+      @keyframes pulse {
+        0%, 100% {
+          box-shadow: 0 0 12px #4ade80;
         }
-      `;
-      document.head.appendChild(style);
-    }
-
-    btn.addEventListener('click', () => {
-      window.open(spotifyUrl, '_blank');
-    });
-
-    document.body.appendChild(btn);
+        50% {
+          box-shadow: 0 0 22px #4ade80;
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
+
+  document.body.appendChild(btn);
 }
 
 // --- Fonctions pour afficher/cacher le bouton Spotify ---
 function showSpotifyButton() {
-  const btn = document.getElementById('spotifyBtn');
+  const btn = document.getElementById('spotify-button');
   if (btn) btn.style.display = 'block';
 }
 
 function hideSpotifyButton() {
-  const btn = document.getElementById('spotifyBtn');
+  const btn = document.getElementById('spotify-button');
   if (btn) btn.style.display = 'none';
 }
 
-// --- Positionne le bouton Spotify au centre horizontal, à 40px du bas ---
+// --- Positionne le bouton Spotify au centre horizontal, à 30px du bas ---
 function positionSpotifyButton() {
-  const btn = document.getElementById('spotifyBtn');
+  const btn = document.getElementById('spotify-button');
   if (!btn) return;
-  // Toujours centré horizontalement via CSS transform (déjà fait)
-  // Optionnel : ajuster position verticale si besoin selon hauteur fenêtre
-  btn.style.bottom = '40px';
+  btn.style.bottom = '30px'; // fixe la distance du bas
 }
 
-// --- MODIFICATION principale : drawOver modifié pour afficher la phrase + score + bouton ---
+// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + bouton ---
 function drawOver() {
   image(backgroundGame, 0, 0, W, H);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
@@ -350,24 +356,22 @@ function drawOver() {
   let bgHeight = bg.height * 0.25;
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
 
-  fill(233, 46, 46);
-  textSize(36);
+  // Phrase jaune humoristique en premier, bien centrée et espacée
+  fill(255, 223, 0);
+  textSize(28);
   textAlign(CENTER, CENTER);
+  text(currentPhrase, W / 2, 140);
 
-  // Score & Best en haut centre (un peu plus haut que dans drawPlay)
+  // Score & Best en haut, centrés, taille réduite pour pas déborder
+  fill(233, 46, 46);
+  textSize(28);
   text(`Score: ${score}    Best: ${best}`, W / 2, 80);
 
-  // Phrase humoristique jaune sous le score
-  fill('yellow');
-  textSize(28);
-  text(currentPhrase, W / 2, 130);
-
-  // Instruction restart (plus bas)
-  fill(233, 46, 46);
+  // Instructions restart plus bas
   textSize(24);
-  text('TAP or CLICK or SPACE', W / 2, 200);
+  text('TAP or CLICK or SPACE', W / 2, 190);
   textSize(32);
-  text('TO RESTART', W / 2, 250);
+  text('TO RESTART', W / 2, 230);
 }
 
 // --- Input & contrôles ---
