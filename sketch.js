@@ -38,7 +38,7 @@ const phrases = [
 ];
 let currentPhrase = "";
 
-// --- preload, setup, etc restent identiques ---
+// --- preload ---
 function preload() {
   for (let i = 0; i < 6; i++) {
     rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
@@ -62,6 +62,7 @@ function preload() {
   mainMusic = loadSound('sounds/main.mp3');
 }
 
+// --- setup ---
 function setup() {
   canvas = createCanvas(W, H);
   centerCanvas();
@@ -92,8 +93,7 @@ function windowResized() {
   centerCanvas();
 }
 
-// --- DESSINS & LOGIQUE DE JEU ---
-
+// --- draw ---
 function draw() {
   background('#001e38');
   switch (state) {
@@ -282,12 +282,13 @@ function gameOver() {
 // --- NOUVELLE FONCTION pour créer le bouton Spotify DOM au setup ---
 function createSpotifyButton() {
   if (document.getElementById('spotify-button')) return;
-  const btn = document.createElement('a'); // lien <a> au lieu de button
+  const btn = document.createElement('a');
   btn.id = 'spotify-button';
   btn.href = spotifyUrl;
   btn.target = '_blank';
   btn.rel = 'noopener noreferrer';
   btn.textContent = '🎵 Listen on Spotify';
+
   Object.assign(btn.style, {
     position: 'fixed',
     bottom: '80px',
@@ -306,9 +307,18 @@ function createSpotifyButton() {
     userSelect: 'none',
     zIndex: '10000',
     animation: 'pulse 2.5s infinite ease-in-out',
-    display: 'none', // caché par défaut
+    display: 'none',
   });
 
+  // Bloquer propagation clic pour ne pas relancer jeu
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+  btn.addEventListener('pointerdown', function(e) {
+    e.stopPropagation();
+  });
+
+  // Ajout animation CSS pulse si pas déjà injectée
   if (!document.getElementById('pulseAnimation')) {
     const style = document.createElement('style');
     style.id = 'pulseAnimation';
@@ -324,7 +334,6 @@ function createSpotifyButton() {
   document.body.appendChild(btn);
 }
 
-// --- Fonctions pour afficher/cacher le bouton Spotify ---
 function showSpotifyButton() {
   const btn = document.getElementById('spotify-button');
   if (btn) btn.style.display = 'block';
@@ -335,14 +344,13 @@ function hideSpotifyButton() {
   if (btn) btn.style.display = 'none';
 }
 
-// --- Positionne le bouton Spotify au centre horizontal, à 80px du bas ---
 function positionSpotifyButton() {
   const btn = document.getElementById('spotify-button');
   if (!btn) return;
-  btn.style.bottom = '80px';
+  btn.style.bottom = '80px'; // fixe la distance du bas
 }
 
-// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + suppression texte restart ---
+// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + bouton ---
 function drawOver() {
   image(backgroundGame, 0, 0, W, H);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
@@ -354,8 +362,10 @@ function drawOver() {
   textAlign(CENTER, CENTER);
 
   // Phrase humoristique en jaune, avec marge horizontale
-  fill(255, 223, 0); // jaune
+  fill(255, 223, 0);
   textSize(28);
+
+  // Si trop long, fractionne en plusieurs lignes
   let phraseMaxWidth = W * 0.9;
   if (textWidth(currentPhrase) > phraseMaxWidth) {
     let words = currentPhrase.split(' ');
@@ -372,18 +382,20 @@ function drawOver() {
     }
     if (line) lines.push(line);
     for (let i = 0; i < lines.length; i++) {
-      text(lines[i], W / 2, 110 + i * 30);
+      text(lines[i], W/2, 110 + i * 30);
     }
   } else {
     text(currentPhrase, W / 2, 120);
   }
 
-  // Score et best en rouge en dessous, taille plus petite
+  // Score & Best en rouge, plus compact
   fill(233, 46, 46);
   textSize(28);
-  text(`Score: ${score}    Best: ${best}`, W / 2, 70);
+  text(`Score: ${score}    Best: ${best}`, W / 2, 60);
+
+  // Le bouton Spotify apparaît via showSpotifyButton() — plus besoin d'instructions texte restart
 }
-  
+
 // --- Input & contrôles ---
 function action() {
   if (state === 'start') {
