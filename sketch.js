@@ -1,5 +1,4 @@
-// Flappy Flyman – version mise à jour bouton Spotify cliquable et repositionné
-
+// Flappy Flyman – version stabilisée + diagonales poulets à partir de 20 points + son ok
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -13,6 +12,7 @@ let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
 
+// --- NOUVEAU : variables phrases et lien Spotify ---
 const spotifyUrl = "https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=e9691dc8dcd64510";
 const phrases = [
   "You'll get 'em next time! 🚀",
@@ -38,16 +38,27 @@ const phrases = [
 ];
 let currentPhrase = "";
 
+// --- preload, setup, etc restent identiques ---
 function preload() {
-  for (let i = 0; i < 6; i++) rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
-  for (let i = 0; i < 2; i++) chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2, '0')}.png`);
-  for (let i = 0; i < 4; i++) picImgs[i] = loadImage(`sprites/${picNames[i]}`);
-  for (let i = 0; i < 6; i++) introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
+  for (let i = 0; i < 6; i++) {
+    rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
+  }
+  for (let i = 0; i < 2; i++) {
+    chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2, '0')}.png`);
+  }
+  for (let i = 0; i < 4; i++) {
+    picImgs[i] = loadImage(`sprites/${picNames[i]}`);
+  }
+  for (let i = 0; i < 6; i++) {
+    introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
+  }
   backgroundIntro1 = loadImage('sprites/backgroundintro_00.png');
   backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
   logo = loadImage('sprites/logo.png');
   backgroundGame = loadImage('sprites/fondbleu.png');
-  for (let i = 128; i >= 1; i--) backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
+  for (let i = 128; i >= 1; i--) {
+    backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
+  }
   mainMusic = loadSound('sounds/main.mp3');
 }
 
@@ -58,7 +69,8 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-  createSpotifyButton();
+
+  createSpotifyButton(); // Crée le bouton dès setup, caché au départ
 }
 
 function centerCanvas() {
@@ -67,22 +79,47 @@ function centerCanvas() {
   const canvasHeight = H * scaleFactor;
   canvas.style('width', `${canvasWidth}px`);
   canvas.style('height', `${canvasHeight}px`);
+
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
+
+  // Positionner le bouton Spotify au même centre horizontalement
+  positionSpotifyButton();
 }
 
 function windowResized() {
   centerCanvas();
 }
 
+// --- DESSINS & LOGIQUE DE JEU ---
+
 function draw() {
   background('#001e38');
   switch (state) {
-    case 'start': drawStart(); hideSpotifyButton(); break;
-    case 'play': drawPlay(); hideSpotifyButton(); break;
-    case 'over': drawOver(); showSpotifyButton(); break;
+    case 'start': 
+      drawStart(); 
+      hideSpotifyButton(); 
+      break;
+    case 'play':  
+      drawPlay();  
+      hideSpotifyButton(); 
+      break;
+    case 'over':  
+      drawOver();  
+      showSpotifyButton(); 
+      break;
   }
+}
+
+function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
+  push();
+  imageMode(CENTER);
+  if (frameCount % (60 / ROCKET_RATE) === 0) {
+    rocketIdx = (rocketIdx + 1) % frames.length;
+  }
+  image(frames[rocketIdx], x, y, width, height);
+  pop();
 }
 
 function drawStart() {
@@ -90,15 +127,12 @@ function drawStart() {
   image(introBackgroundIdx === 0 ? backgroundIntro1 : backgroundIntro2, 0, 0, W, H);
   let logoWidth = W * 0.8;
   let logoHeight = logo.height * (logoWidth / logo.width);
-  image(logo, W / 2 - logoWidth / 2, 100, logoWidth, logoHeight);
+  image(logo, W/2 - logoWidth/2, 100, logoWidth, logoHeight);
   fill(233, 46, 46);
-  textSize(36);
-  text('FLAPPY FLYMAN', W / 2, 100 + logoHeight + 50);
-  drawRocket(W / 2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
-  textSize(24);
-  text('TAP or CLICK or SPACE', W / 2, 450);
-  textSize(32);
-  text('TO START', W / 2, 500);
+  textSize(36); text('FLAPPY FLYMAN', W/2, 100 + logoHeight + 50);
+  drawRocket(W/2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
+  textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
+  textSize(32); text('TO START', W/2, 500);
 }
 
 function drawPlay() {
@@ -174,15 +208,7 @@ function drawPlay() {
 
   fill(233, 46, 46);
   textSize(36);
-  text(score, W / 2, 60);
-}
-
-function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
-  push();
-  imageMode(CENTER);
-  if (frameCount % (60 / ROCKET_RATE) === 0) rocketIdx = (rocketIdx + 1) % frames.length;
-  image(frames[rocketIdx], x, y, width, height);
-  pop();
+  text(score, W/2, 60);
 }
 
 function drawChicken(c) {
@@ -204,14 +230,14 @@ function makeChicken() {
 function makePic() {
   const idx = floor(random(4));
   const img = picImgs[idx];
-  let y, w, h;
+  let y, w, h, hitboxW;
   switch (picNames[idx]) {
-    case 'pic_petit_haut.png': w = h = 80 * 1.05; y = 0; break;
-    case 'pic_petit_bas.png': w = h = 80 * 1.05; y = H - h; break;
-    case 'pic_gros_haut.png': w = h = 120 * 1.05; y = 0; break;
-    case 'pic_gros_bas.png': w = h = 120 * 1.05; y = H - h; break;
+    case 'pic_petit_haut.png': w = h = 80 * 1.05; hitboxW = 20; y = 0; break;
+    case 'pic_petit_bas.png': w = h = 80 * 1.05; hitboxW = 20; y = H - h; break;
+    case 'pic_gros_haut.png': w = h = 120 * 1.05; hitboxW = 40; y = 0; break;
+    case 'pic_gros_bas.png': w = h = 120 * 1.05; hitboxW = 40; y = H - h; break;
   }
-  return { x: W, y, w, h, passed: false, img };
+  return { x: W, y, w, h, hitboxW, img, passed: false };
 }
 
 function hitRocket(r, o) {
@@ -227,6 +253,7 @@ function resetGame() {
   score = 0;
 }
 
+// Gestion musique
 function startMusic() {
   if (mainMusic && mainMusic.isLoaded()) {
     if (!mainMusic.isPlaying()) {
@@ -237,60 +264,25 @@ function startMusic() {
 }
 
 function stopMusic() {
-  if (mainMusic && mainMusic.isPlaying()) mainMusic.stop();
+  if (mainMusic && mainMusic.isPlaying()) {
+    mainMusic.stop();
+  }
 }
 
+// --- FONCTION gameOver modifiée pour mettre la phrase aléatoire ---
 function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
+
+  // Tirage phrase humoristique aléatoire à chaque game over
   currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 }
 
-function drawOver() {
-  image(backgroundGame, 0, 0, W, H);
-  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
-  let bg = backgroundGameFrames[backgroundGameIdx];
-  let bgWidth = bg.width * 0.25;
-  let bgHeight = bg.height * 0.25;
-  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
-
-  textAlign(CENTER, CENTER);
-
-  fill(255, 223, 0);
-  textSize(28);
-  const maxWidth = W * 0.9;
-  if (textWidth(currentPhrase) > maxWidth) {
-    const words = currentPhrase.split(' ');
-    let lines = [];
-    let line = "";
-    for (const w of words) {
-      const testLine = line + (line ? " " : "") + w;
-      if (textWidth(testLine) > maxWidth) {
-        lines.push(line);
-        line = w;
-      } else {
-        line = testLine;
-      }
-    }
-    if (line) lines.push(line);
-    for (let i = 0; i < lines.length; i++) {
-      text(lines[i], W / 2, 110 + i * 30);
-    }
-  } else {
-    text(currentPhrase, W / 2, 120);
-  }
-
-  fill(233, 46, 46);
-  textSize(24);
-  text(`Score : ${score}    Best : ${best}`, W / 2, 70);
-
-  // Suppression texte restart demandé
-}
-
+// --- NOUVELLE FONCTION pour créer le bouton Spotify DOM au setup ---
 function createSpotifyButton() {
   if (document.getElementById('spotify-button')) return;
-  const btn = document.createElement('a');
+  const btn = document.createElement('a'); // lien <a> au lieu de button
   btn.id = 'spotify-button';
   btn.href = spotifyUrl;
   btn.target = '_blank';
@@ -314,8 +306,9 @@ function createSpotifyButton() {
     userSelect: 'none',
     zIndex: '10000',
     animation: 'pulse 2.5s infinite ease-in-out',
-    display: 'none',
+    display: 'none', // caché par défaut
   });
+
   if (!document.getElementById('pulseAnimation')) {
     const style = document.createElement('style');
     style.id = 'pulseAnimation';
@@ -327,9 +320,11 @@ function createSpotifyButton() {
     `;
     document.head.appendChild(style);
   }
+
   document.body.appendChild(btn);
 }
 
+// --- Fonctions pour afficher/cacher le bouton Spotify ---
 function showSpotifyButton() {
   const btn = document.getElementById('spotify-button');
   if (btn) btn.style.display = 'block';
@@ -340,6 +335,56 @@ function hideSpotifyButton() {
   if (btn) btn.style.display = 'none';
 }
 
+// --- Positionne le bouton Spotify au centre horizontal, à 80px du bas ---
+function positionSpotifyButton() {
+  const btn = document.getElementById('spotify-button');
+  if (!btn) return;
+  btn.style.bottom = '80px';
+}
+
+// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + suppression texte restart ---
+function drawOver() {
+  image(backgroundGame, 0, 0, W, H);
+  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
+  let bg = backgroundGameFrames[backgroundGameIdx];
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
+
+  textAlign(CENTER, CENTER);
+
+  // Phrase humoristique en jaune, avec marge horizontale
+  fill(255, 223, 0); // jaune
+  textSize(28);
+  let phraseMaxWidth = W * 0.9;
+  if (textWidth(currentPhrase) > phraseMaxWidth) {
+    let words = currentPhrase.split(' ');
+    let lines = [];
+    let line = "";
+    for (let w of words) {
+      let testLine = line + (line ? " " : "") + w;
+      if (textWidth(testLine) > phraseMaxWidth) {
+        lines.push(line);
+        line = w;
+      } else {
+        line = testLine;
+      }
+    }
+    if (line) lines.push(line);
+    for (let i = 0; i < lines.length; i++) {
+      text(lines[i], W / 2, 110 + i * 30);
+    }
+  } else {
+    text(currentPhrase, W / 2, 120);
+  }
+
+  // Score et best en rouge en dessous, taille plus petite
+  fill(233, 46, 46);
+  textSize(28);
+  text(`Score: ${score}    Best: ${best}`, W / 2, 70);
+}
+  
+// --- Input & contrôles ---
 function action() {
   if (state === 'start') {
     resetGame();
