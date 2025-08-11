@@ -1,4 +1,3 @@
-// Flappy Flyman – version stabilisée + diagonales poulets à partir de 20 points + son ok
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -12,7 +11,6 @@ let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
 
-// --- NOUVEAU : variables phrases et lien Spotify ---
 const spotifyUrl = "https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=e9691dc8dcd64510";
 const phrases = [
   "You'll get 'em next time! 🚀",
@@ -38,7 +36,6 @@ const phrases = [
 ];
 let currentPhrase = "";
 
-// --- preload, setup, etc restent identiques ---
 function preload() {
   for (let i = 0; i < 6; i++) {
     rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
@@ -70,7 +67,7 @@ function setup() {
   textAlign(CENTER, CENTER);
   noSmooth();
 
-  createSpotifyButton(); // Crée le bouton dès setup, caché au départ
+  createSpotifyButton();
 }
 
 function centerCanvas() {
@@ -91,22 +88,20 @@ function windowResized() {
   centerCanvas();
 }
 
-// --- DESSINS & LOGIQUE DE JEU ---
-
 function draw() {
   background('#001e38');
   switch (state) {
     case 'start': 
       drawStart(); 
-      hideSpotifyButton(); 
+      hideSpotifyButton();
       break;
     case 'play':  
       drawPlay();  
-      hideSpotifyButton(); 
+      hideSpotifyButton();
       break;
     case 'over':  
       drawOver();  
-      showSpotifyButton(); 
+      showSpotifyButton();
       break;
   }
 }
@@ -252,7 +247,6 @@ function resetGame() {
   score = 0;
 }
 
-// Gestion musique
 function startMusic() {
   if (mainMusic && mainMusic.isLoaded()) {
     if (!mainMusic.isPlaying()) {
@@ -268,17 +262,16 @@ function stopMusic() {
   }
 }
 
-// --- FONCTION gameOver modifiée pour mettre la phrase aléatoire ---
 function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
 
-  // Tirage phrase humoristique aléatoire à chaque game over
   currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 }
 
-// --- NOUVELLE FONCTION pour créer le bouton Spotify DOM au setup ---
+// Création du bouton Spotify (un seul bouton)
+// Le clic est géré en JS : empêche relance jeu si clic bouton
 function createSpotifyButton() {
   if (document.getElementById('spotify-button')) return;
   const btn = document.createElement('a');
@@ -289,7 +282,7 @@ function createSpotifyButton() {
   btn.textContent = '🎵 Listen on Spotify';
   Object.assign(btn.style, {
     position: 'fixed',
-    bottom: '60px',  // bouton remonté
+    bottom: '80px', // bouton remonté
     left: '50%',
     transform: 'translateX(-50%)',
     padding: '14px 32px',
@@ -308,12 +301,13 @@ function createSpotifyButton() {
     display: 'none',
   });
 
-  // Stopper la propagation du clic pour éviter relancer le jeu
+  // Empêcher la propagation du clic (important)
   btn.addEventListener('click', e => {
     e.stopPropagation();
+    // Pas besoin de e.preventDefault() car on veut l’ouverture du lien
   });
 
-  // Injection animation pulse CSS si pas déjà injectée
+  // Ajout animation pulse CSS si besoin
   if (!document.getElementById('pulseAnimation')) {
     const style = document.createElement('style');
     style.id = 'pulseAnimation';
@@ -333,7 +327,6 @@ function createSpotifyButton() {
   document.body.appendChild(btn);
 }
 
-// --- Fonctions pour afficher/cacher le bouton Spotify ---
 function showSpotifyButton() {
   const btn = document.getElementById('spotify-button');
   if (btn) btn.style.display = 'block';
@@ -344,14 +337,13 @@ function hideSpotifyButton() {
   if (btn) btn.style.display = 'none';
 }
 
-// --- Positionne le bouton Spotify au centre horizontal, à 60px du bas ---
 function positionSpotifyButton() {
   const btn = document.getElementById('spotify-button');
   if (!btn) return;
-  btn.style.bottom = '60px';
+  btn.style.bottom = '80px'; // toujours remonté
 }
 
-// --- MODIFICATION principale : drawOver modifié pour afficher phrase + score + (plus d'instructions) ---
+// Écran de fin
 function drawOver() {
   image(backgroundGame, 0, 0, W, H);
   if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
@@ -362,8 +354,8 @@ function drawOver() {
 
   textAlign(CENTER, CENTER);
 
-  // Phrase humoristique en jaune, avec marge horizontale, wrap si trop large
-  fill(255, 223, 0); // jaune
+  // Phrase jaune en haut, bien centrée avec marge horizontale
+  fill(255, 223, 0);
   textSize(28);
   let phraseMaxWidth = W * 0.9;
   if (textWidth(currentPhrase) > phraseMaxWidth) {
@@ -387,15 +379,14 @@ function drawOver() {
     text(currentPhrase, W / 2, 120);
   }
 
-  // Score & Best en rouge en haut, taille plus petite, centré
+  // Score et best en rouge en dessous, taille plus petite
   fill(233, 46, 46);
   textSize(24);
   text(`Score: ${score}    Best: ${best}`, W / 2, 60);
 
-  // Plus aucune instruction de restart pour maximiser le CTA sur le bouton Spotify
+  // ** Suppression du texte "TAP or CLICK or SPACE" demandé **
 }
 
-// --- Input & contrôles ---
 function action() {
   if (state === 'start') {
     resetGame();
@@ -415,6 +406,20 @@ function keyPressed() {
   if (key === ' ') action();
 }
 
-function mousePressed() {
+// Important : vérifier que le clic ne soit pas sur le bouton avant d'appeler action()
+function mousePressed(e) {
+  // Récupérer élément cliqué
+  const btn = document.getElementById('spotify-button');
+  // Si clic sur bouton, ne rien faire ici pour éviter relancer la partie
+  if (btn && btn.style.display === 'block') {
+    // On récupère la position du clic dans la fenêtre
+    const rect = btn.getBoundingClientRect();
+    if (e.clientX >= rect.left && e.clientX <= rect.right &&
+        e.clientY >= rect.top && e.clientY <= rect.bottom) {
+      // clic sur le bouton => on laisse le <a> gérer l'ouverture de l'URL
+      return; // NE PAS relancer le jeu
+    }
+  }
+  // Sinon clic ailleurs => action normale
   action();
 }
