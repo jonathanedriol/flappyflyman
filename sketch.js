@@ -108,11 +108,37 @@ function drawOver() {
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
 
   fill(233, 46, 46);
-  textSize(36); text('GAME OVER', W/2, 100);
-  textSize(24); text('Score: ' + score, W/2, 150);
-  text('Best: ' + best, W/2, 200);
-  text('TAP or CLICK or SPACE', W/2, 250);
-  textSize(32); text('TO RESTART', W/2, 300);
+  textSize(24);
+  text('Score: ' + score, W/2, 140);
+  text('Best: ' + best, W/2, 180);
+
+  // Phrase rigolote aléatoire en jaune
+  const funnyPhrases = [
+    "You'll get 'em next time! 🚀",
+    "The chickens are laughing… for now. 🐔",
+    "Nice try, pilot! ✈️",
+    "Almost made it to the moon! 🌙",
+    "That rocket needs more coffee. ☕",
+    "Gravity wins again! 🪂",
+    "So close… kinda. 😅",
+    "Chickens: 1 — You: 0 🐓",
+    "Even NASA has bad days. 🛰️",
+    "Rocket science is hard, right? 🤓",
+    "Mayday! Mayday! 💥",
+    "Next flight’s on the house. 🛫",
+    "Almost legendary! ✨",
+    "At least you looked cool doing it. 😎",
+    "Not bad for a rookie. 🎯",
+    "Your rocket called… it needs a vacation. 🏝️",
+    "You flew like a boss… until you didn’t. 💀",
+    "Don’t worry, chickens can’t drive rockets. 🐥",
+    "100% effort, 0% survival. 💪",
+    "Better luck next launch! 🚀"
+  ];
+  fill(255, 215, 0); // jaune doré
+  textSize(20);
+  const phrase = random(funnyPhrases);
+  text(phrase, W/2, 220);
 
   // Bouton Spotify uniquement logo spotifylogo2.png, même taille & position
   push();
