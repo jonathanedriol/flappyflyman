@@ -35,10 +35,10 @@ let pointerDownOnButton = false;
 // ------------------ PRELOAD ------------------
 function preload(){
   // rocket frames
-  for(let i=0;i<6;i++) rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2,'0')}.png`);
-  for(let i=0;i<2;i++) chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2,'0')}.png`);
-  for(let i=0;i<4;i++) picImgs[i] = loadImage(`sprites/${picNames[i]}`);
-  for(let i=0;i<6;i++) introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3,'0')}.png`);
+  for(let i=0;i<6;i++) rocketFrames[i] = loadImage(sprites/frame_${i.toString().padStart(2,'0')}.png);
+  for(let i=0;i<2;i++) chickenFrames[i] = loadImage(sprites/chicken_${i.toString().padStart(2,'0')}.png);
+  for(let i=0;i<4;i++) picImgs[i] = loadImage(sprites/${picNames[i]});
+  for(let i=0;i<6;i++) introFrames[i] = loadImage(sprites/avatarintro_${i.toString().padStart(3,'0')}.png);
 
   backgroundIntro1 = loadImage('sprites/backgroundintro_00.png');
   backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
@@ -46,7 +46,7 @@ function preload(){
   backgroundGame = loadImage('sprites/fondbleu.png');
 
   // background frames (optional heavy)
-  for(let i=128;i>=1;i--) backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3,'0')}.png`);
+  for(let i=128;i>=1;i--) backgroundGameFrames[128 - i] = loadImage(sprites/background_${i.toString().padStart(3,'0')}.png);
 
   // sound (optional)
   mainMusic = loadSound && typeof loadSound === 'function' ? loadSound('sounds/main.mp3') : null;
@@ -69,8 +69,8 @@ function centerCanvas(){
   const scaleFactor = Math.min(windowWidth / W, windowHeight / H);
   const canvasWidth = W * scaleFactor;
   const canvasHeight = H * scaleFactor;
-  canvas.style('width', `${canvasWidth}px`);
-  canvas.style('height', `${canvasHeight}px`);
+  canvas.style('width', ${canvasWidth}px);
+  canvas.style('height', ${canvasHeight}px);
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
@@ -192,7 +192,7 @@ function drawOver(){
 
   // Score / Best
   fill(233,46,46); textSize(24);
-  text(`Score: ${score}    Best: ${best}`, W/2, 70);
+  text(Score: ${score}    Best: ${best}, W/2, 70);
 
   // (no restart instructions — CTA Spotify focus)
 }
@@ -238,7 +238,6 @@ function hitRocket(r,o){
 function resetGame(){
   rocket = { x: 100, y: H/2, vel: 0 };
   enemies = []; obstacles = []; score = 0;
-  hideSpotifyButton();
 }
 function startMusic(){ if(mainMusic && mainMusic.isLoaded && mainMusic.isLoaded()){ if(!mainMusic.isPlaying()) { mainMusic.play(); mainMusic.setLoop(true); } } }
 function stopMusic(){ if(mainMusic && mainMusic.isPlaying && mainMusic.isPlaying()) mainMusic.stop(); }
@@ -253,21 +252,9 @@ function gameOver(){
 // ------------------ INPUTS ------------------
 // Unified click/tap handling: ignore clicks that started on the spotify button.
 function action(){
-  if(state === 'start'){
-    resetGame();
-    state = 'play';
-    startMusic();
-    hideSpotifyButton();
-  }
-  else if(state === 'play'){
-    rocket.vel = FLAP;
-  }
-  else if(state === 'over'){
-    resetGame();
-    state = 'play';
-    startMusic();
-    hideSpotifyButton();
-  }
+  if(state === 'start'){ resetGame(); state = 'play'; startMusic(); }
+  else if(state === 'play'){ rocket.vel = FLAP; }
+  else if(state === 'over'){ resetGame(); state = 'play'; startMusic(); hideSpotifyButton(); }
 }
 
 // p5.js key pressed
@@ -356,6 +343,7 @@ function createSpotifyButton(){
   // pointerdown guard: mark that pointer started on the button
   document.addEventListener('pointerdown', function(e){
     if(!e.target) { pointerDownOnButton = false; return; }
+    // if the pointerdown target is the button or inside it, flag it
     pointerDownOnButton = !!(e.target.closest && e.target.closest('#spotify-button'));
   }, { capture: true });
 
@@ -369,12 +357,12 @@ function createSpotifyButton(){
   if(!document.getElementById('spotify-pulse-style')){
     const style = document.createElement('style');
     style.id = 'spotify-pulse-style';
-    style.textContent = `
+    style.textContent = 
       @keyframes pulse {
         0%, 100% { box-shadow: 0 0 12px #1DB954; }
         50% { box-shadow: 0 0 22px #1DB954; }
       }
-    `;
+    ;
     document.head.appendChild(style);
   }
 
