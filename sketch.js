@@ -34,7 +34,6 @@ let pointerDownOnButton = false;
 
 // ------------------ PRELOAD ------------------
 function preload(){
-  // rocket frames
   for(let i=0;i<6;i++) rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2,'0')}.png`);
   for(let i=0;i<2;i++) chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2,'0')}.png`);
   for(let i=0;i<4;i++) picImgs[i] = loadImage(`sprites/${picNames[i]}`);
@@ -45,10 +44,8 @@ function preload(){
   logo = loadImage('sprites/logo.png');
   backgroundGame = loadImage('sprites/fondbleu.png');
 
-  // background frames (optional heavy)
   for(let i=128;i>=1;i--) backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3,'0')}.png`);
 
-  // sound (optional)
   mainMusic = loadSound && typeof loadSound === 'function' ? loadSound('sounds/main.mp3') : null;
 }
 
@@ -61,10 +58,9 @@ function setup(){
   noSmooth();
   resetGame();
 
-  createSpotifyButton(); // create but hidden
+  createSpotifyButton();
 }
 
-// Responsive canvas centering + ensure button position updated
 function centerCanvas(){
   const scaleFactor = Math.min(windowWidth / W, windowHeight / H);
   const canvasWidth = W * scaleFactor;
@@ -175,7 +171,6 @@ function drawOver(){
 
   textAlign(CENTER, CENTER);
 
-  // Phrase jaune en premier, wrapping si nécessaire
   fill(255,223,0); textSize(28);
   let phraseMaxWidth = W * 0.9;
   if(textWidth(currentPhrase) > phraseMaxWidth){
@@ -190,11 +185,8 @@ function drawOver(){
     text(currentPhrase, W/2, 120);
   }
 
-  // Score / Best
   fill(233,46,46); textSize(24);
   text(`Score: ${score}    Best: ${best}`, W/2, 70);
-
-  // (no restart instructions — CTA Spotify focus)
 }
 
 // ------------------ DRAW HELPERS ------------------
@@ -264,16 +256,13 @@ function keyPressed(){
 
 // p5.js mousePressed receives the native event as argument
 function mousePressed(evt){
-  // if pointerDownOnButton set by document listener, block action
   if(pointerDownOnButton) { pointerDownOnButton = false; return; }
 
-  // fallback: detect if click is inside button rect (robust)
   const btn = document.getElementById('spotify-button');
   if(btn && btn.style.display !== 'none'){
     const rect = btn.getBoundingClientRect();
     const x = evt.clientX, y = evt.clientY;
     if(x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom){
-      // click on button -> let the <a> handle it; don't call action()
       return;
     }
   }
@@ -283,18 +272,15 @@ function mousePressed(evt){
 
 // For touch events: p5.js touchStarted can be used too
 function touchStarted(evt){
-  // same guard
   if(pointerDownOnButton) { pointerDownOnButton = false; return false; }
-  // if clicked on button, ignore
   const btn = document.getElementById('spotify-button');
   if(btn && btn.style.display !== 'none'){
-    // touches[0] may be available
     const t = (evt.touches && evt.touches[0]) || (evt.changedTouches && evt.changedTouches[0]);
     if(t){
       const x = t.clientX, y = t.clientY;
       const rect = btn.getBoundingClientRect();
       if(x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom){
-        return false; // prevent game action
+        return false;
       }
     }
   }
@@ -312,7 +298,6 @@ function createSpotifyButton(){
   btn.rel = 'noopener noreferrer';
   btn.textContent = '🎵 Listen on Spotify';
 
-  // Inline styles safe fallback (does not require CSS edit)
   Object.assign(btn.style, {
     position: 'fixed',
     bottom: '80px',
@@ -334,26 +319,20 @@ function createSpotifyButton(){
     display: 'none'
   });
 
-  // Stop propagation so the canvas/game doesn't receive the event
   btn.addEventListener('click', function(e){
     e.stopPropagation();
-    // do NOT preventDefault() — we want the <a> to open
   }, { passive: false });
 
-  // pointerdown guard: mark that pointer started on the button
   document.addEventListener('pointerdown', function(e){
     if(!e.target) { pointerDownOnButton = false; return; }
-    // if the pointerdown target is the button or inside it, flag it
     pointerDownOnButton = !!(e.target.closest && e.target.closest('#spotify-button'));
   }, { capture: true });
 
-  // also touchstart fallback for older browsers
   document.addEventListener('touchstart', function(e){
     if(!e.target) { pointerDownOnButton = false; return; }
     pointerDownOnButton = !!(e.target.closest && e.target.closest('#spotify-button'));
   }, { capture: true, passive: true });
 
-  // Inject pulse keyframes if needed
   if(!document.getElementById('spotify-pulse-style')){
     const style = document.createElement('style');
     style.id = 'spotify-pulse-style';
