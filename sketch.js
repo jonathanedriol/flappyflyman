@@ -38,7 +38,7 @@ function preload() {
   }
   mainMusic = loadSound('sounds/main.mp3');
 
-  // Charger le logo Spotify 2
+  // Charger le nouveau logo Spotify (spotifylogo2.png)
   spotifyLogoImg = loadImage('sprites/spotifylogo2.png');
 }
 
@@ -114,29 +114,15 @@ function drawOver() {
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
 
-  // Bouton Spotify avec texte + logo spotifylogo2.png
+  // Bouton Spotify uniquement logo spotifylogo2.png, même taille & position
   push();
-  fill('#191414'); // fond sombre Spotify
-  stroke(255);
-  strokeWeight(3);
-  rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 12);
-
   noStroke();
-  fill('#1DB954'); // vert Spotify
-  textSize(20);
-  textAlign(LEFT, CENTER);
-  text('Listen on', SPOTIFY_BTN.x + 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
-
   if (spotifyLogoImg) {
     imageMode(CENTER);
-    const logoHeight = 40;  // taille légèrement agrandie
-    const aspectRatio = spotifyLogoImg.width / spotifyLogoImg.height;
+    const logoHeight = SPOTIFY_BTN.h * 0.8; // 80% hauteur bouton
+    const aspectRatio = 840 / 324; // ratio spotifylogo2.png (largeur / hauteur)
     const logoWidth = logoHeight * aspectRatio;
-    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoWidth / 2 - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
-  } else {
-    fill('#1DB954');
-    textAlign(RIGHT, CENTER);
-    text('Spotify', SPOTIFY_BTN.x + SPOTIFY_BTN.w - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
+    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
   }
   pop();
 }
