@@ -13,7 +13,7 @@ let introBackgroundIdx = 0;
 let mainMusic;
 
 const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
-const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // ajusté largeur pour logo + texte
+const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
 let spotifyLogoImg;
 
 function preload() {
@@ -121,17 +121,21 @@ function drawOver() {
   strokeWeight(3);
   rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 12);
 
-  // Texte
   noStroke();
   fill('#1DB954'); // vert Spotify
   textSize(20);
   textAlign(LEFT, CENTER);
   text('Listen on', SPOTIFY_BTN.x + 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
 
-  // Logo Spotify à droite du texte
-  imageMode(CENTER);
-  const logoSize = 30;
-  image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoSize - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoSize, logoSize);
+  if (spotifyLogoImg) {
+    imageMode(CENTER);
+    const logoSize = 30;
+    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoSize - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoSize, logoSize);
+  } else {
+    fill('#1DB954');
+    textAlign(RIGHT, CENTER);
+    text('Spotify', SPOTIFY_BTN.x + SPOTIFY_BTN.w - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
+  }
   pop();
 }
 
