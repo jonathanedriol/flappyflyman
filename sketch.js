@@ -18,28 +18,28 @@ let spotifyLogoImg;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
-    rocketFrames[i] = loadImage(sprites/frame_${i.toString().padStart(2, '0')}.png);
+    rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
   }
   for (let i = 0; i < 2; i++) {
-    chickenFrames[i] = loadImage(sprites/chicken_${i.toString().padStart(2, '0')}.png);
+    chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2, '0')}.png`);
   }
   for (let i = 0; i < 4; i++) {
-    picImgs[i] = loadImage(sprites/${picNames[i]});
+    picImgs[i] = loadImage(`sprites/${picNames[i]}`);
   }
   for (let i = 0; i < 6; i++) {
-    introFrames[i] = loadImage(sprites/avatarintro_${i.toString().padStart(3, '0')}.png);
+    introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
   }
   backgroundIntro1 = loadImage('sprites/backgroundintro_00.png');
   backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
   logo = loadImage('sprites/logo.png');
   backgroundGame = loadImage('sprites/fondbleu.png');
   for (let i = 128; i >= 1; i--) {
-    backgroundGameFrames[128 - i] = loadImage(sprites/background_${i.toString().padStart(3, '0')}.png);
+    backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
   }
   mainMusic = loadSound('sounds/main.mp3');
 
-  // Charger le logo Spotify
-  spotifyLogoImg = loadImage('sprites/spotifylogo.png');
+  // Charger le nouveau logo Spotify (spotifylogo2.png)
+  spotifyLogoImg = loadImage('sprites/spotifylogo2.png');
 }
 
 function setup() {
@@ -55,8 +55,8 @@ function centerCanvas() {
   const scaleFactor = Math.min(windowWidth / W, windowHeight / H);
   const canvasWidth = W * scaleFactor;
   const canvasHeight = H * scaleFactor;
-  canvas.style('width', ${canvasWidth}px);
-  canvas.style('height', ${canvasHeight}px);
+  canvas.style('width', `${canvasWidth}px`);
+  canvas.style('height', `${canvasHeight}px`);
 
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
@@ -114,29 +114,15 @@ function drawOver() {
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
 
-  // Bouton Spotify avec texte + logo en proportions correctes
+  // Bouton Spotify uniquement logo spotifylogo2.png, même taille & position
   push();
-  fill('#191414'); // fond sombre Spotify
-  stroke(255);
-  strokeWeight(3);
-  rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 12);
-
   noStroke();
-  fill('#1DB954'); // vert Spotify
-  textSize(20);
-  textAlign(LEFT, CENTER);
-  text('Listen on', SPOTIFY_BTN.x + 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
-
   if (spotifyLogoImg) {
     imageMode(CENTER);
-    const logoHeight = 30;
-    const aspectRatio = 802 / 240; // ratio exact logo
-    const logoWidth = logoHeight * aspectRatio; // env. 100 px
-    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoWidth/2 - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
-  } else {
-    fill('#1DB954');
-    textAlign(RIGHT, CENTER);
-    text('Spotify', SPOTIFY_BTN.x + SPOTIFY_BTN.w - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
+    const logoHeight = SPOTIFY_BTN.h * 0.8; // 80% hauteur bouton
+    const aspectRatio = 840 / 324; // ratio spotifylogo2.png (largeur / hauteur)
+    const logoWidth = logoHeight * aspectRatio;
+    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
   }
   pop();
 }
