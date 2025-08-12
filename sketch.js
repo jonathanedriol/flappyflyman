@@ -114,7 +114,7 @@ function drawOver() {
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
 
-  // Bouton Spotify avec texte + logo
+  // Bouton Spotify avec texte + logo en proportions correctes
   push();
   fill('#191414'); // fond sombre Spotify
   stroke(255);
@@ -129,8 +129,10 @@ function drawOver() {
 
   if (spotifyLogoImg) {
     imageMode(CENTER);
-    const logoSize = 30;
-    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoSize - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoSize, logoSize);
+    const logoHeight = 30;
+    const aspectRatio = spotifyLogoImg.width / spotifyLogoImg.height;
+    const logoWidth = logoHeight * aspectRatio;
+    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoWidth/2 - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
   } else {
     fill('#1DB954');
     textAlign(RIGHT, CENTER);
