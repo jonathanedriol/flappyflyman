@@ -106,7 +106,7 @@ function drawOver() {
   let bgWidth = bg.width * 0.25;
   let bgHeight = bg.height * 0.25;
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
-  
+
   fill(233, 46, 46);
   textSize(36); text('GAME OVER', W/2, 100);
   textSize(24); text('Score: ' + score, W/2, 150);
@@ -130,8 +130,8 @@ function drawOver() {
   if (spotifyLogoImg) {
     imageMode(CENTER);
     const logoHeight = 30;
-    const aspectRatio = spotifyLogoImg.width / spotifyLogoImg.height;
-    const logoWidth = logoHeight * aspectRatio;
+    const aspectRatio = 802 / 240; // ratio exact logo
+    const logoWidth = logoHeight * aspectRatio; // env. 100 px
     image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoWidth/2 - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
   } else {
     fill('#1DB954');
@@ -307,7 +307,7 @@ function mousePressed() {
       mouseY <= SPOTIFY_BTN.y + SPOTIFY_BTN.h
     ) {
       window.open(SPOTIFY_URL, '_blank');
-      return; // stop ici, ne pas relancer la partie
+      return; // ne pas relancer la partie si bouton cliqué
     }
   }
   action();
