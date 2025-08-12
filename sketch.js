@@ -16,6 +16,33 @@ const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBN
 const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
 let spotifyLogoImg;
 
+// Variable pour stocker la phrase rigolote à afficher à l'écran de fin
+let funnyPhrase = '';
+
+// Liste des phrases rigolotes
+const funnyPhrases = [
+  "You'll get 'em next time! 🚀",
+  "The chickens are laughing… for now. 🐔",
+  "Nice try, pilot! ✈️",
+  "Almost made it to the moon! 🌙",
+  "That rocket needs more coffee. ☕",
+  "Gravity wins again! 🪂",
+  "So close… kinda. 😅",
+  "Chickens: 1 — You: 0 🐓",
+  "Even NASA has bad days. 🛰️",
+  "Rocket science is hard, right? 🤓",
+  "Mayday! Mayday! 💥",
+  "Next flight’s on the house. 🛫",
+  "Almost legendary! ✨",
+  "At least you looked cool doing it. 😎",
+  "Not bad for a rookie. 🎯",
+  "Your rocket called… it needs a vacation. 🏝️",
+  "You flew like a boss… until you didn’t. 💀",
+  "Don’t worry, chickens can’t drive rockets. 🐥",
+  "100% effort, 0% survival. 💪",
+  "Better luck next launch! 🚀"
+];
+
 function preload() {
   for (let i = 0; i < 6; i++) {
     rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
@@ -113,42 +140,16 @@ function drawOver() {
   text('Best: ' + best, W/2, 180);
 
   // Phrase rigolote aléatoire en jaune
-  const funnyPhrases = [
-    "You'll get 'em next time! 🚀",
-    "The chickens are laughing… for now. 🐔",
-    "Nice try, pilot! ✈️",
-    "Almost made it to the moon! 🌙",
-    "That rocket needs more coffee. ☕",
-    "Gravity wins again! 🪂",
-    "So close… kinda. 😅",
-    "Chickens: 1 — You: 0 🐓",
-    "Even NASA has bad days. 🛰️",
-    "Rocket science is hard, right? 🤓",
-    "Mayday! Mayday! 💥",
-    "Next flight’s on the house. 🛫",
-    "Almost legendary! ✨",
-    "At least you looked cool doing it. 😎",
-    "Not bad for a rookie. 🎯",
-    "Your rocket called… it needs a vacation. 🏝️",
-    "You flew like a boss… until you didn’t. 💀",
-    "Don’t worry, chickens can’t drive rockets. 🐥",
-    "100% effort, 0% survival. 💪",
-    "Better luck next launch! 🚀"
-  ];
-  fill(255, 215, 0); // jaune doré
+  fill(255, 215, 0);
   textSize(20);
-  const phrase = random(funnyPhrases);
-  text(phrase, W/2, 220);
+  text(funnyPhrase, W/2, 220);
 
-  // Bouton Spotify uniquement logo spotifylogo2.png, même taille & position
+  // Affichage du logo Spotify à taille originale, centré dans le bouton
   push();
   noStroke();
   if (spotifyLogoImg) {
     imageMode(CENTER);
-    const logoHeight = SPOTIFY_BTN.h * 0.8; // 80% hauteur bouton
-    const aspectRatio = 840 / 324; // ratio spotifylogo2.png (largeur / hauteur)
-    const logoWidth = logoHeight * aspectRatio;
-    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
+    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
   }
   pop();
 }
@@ -290,6 +291,9 @@ function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
+
+  // Choisir une phrase rigolote au hasard pour cet écran de fin
+  funnyPhrase = random(funnyPhrases);
 }
 
 function action() {
