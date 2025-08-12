@@ -1,199 +1,299 @@
-// flappy-flyman-complet.js
-// JS complet — p5.js style (preload/setup/draw) + bouton Spotify cliquable à l'écran de fin
+// Flappy Flyman – version stabilisée + diagonales poulets à partir de 20 points + son ok
+let rocket, enemies = [], obstacles = [], score = 0, best = 0;
+let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
+let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
+let introFrames = [];
+let backgroundIntro1, backgroundIntro2, logo;
+let backgroundGameFrames = [], backgroundGameIdx = 0;
+const GRAVITY = 0.4, FLAP = -7, W = 360, H = 640;
+let SPEED = 1.5, ROCKET_RATE = 6, CHICKEN_RATE = 8;
+let state = 'start';
+let canvas;
+let introBackgroundIdx = 0;
+let mainMusic;
 
-// CONFIG
-const W = 360, H = 640;
-const GRAVITY = 0.4, FLAP = -7;
-let SPEED = 1.5, ROCKET_RATE = 6, CHICKEN_RATE = 4;
-let gap = 150;
-
-// VARIABLES
-let bird, rockets = [], chickens = [];
-let score = 0, best = 0;
-let gameOver = false;
-let fontRegular, yellowFont;
+const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
+const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
 let spotifyLogoImg;
-let spotifyBtnX, spotifyBtnY, spotifyBtnW, spotifyBtnH;
 
-// PRELOAD
 function preload() {
-  birdImg = loadImage('sprites/bird.png');
-  rocketImg = loadImage('sprites/rocket.png');
-  chickenImg = loadImage('sprites/chicken.png');
-  bgImg = loadImage('sprites/bg.png');
-  fontRegular = loadFont('sprites/PressStart2P-Regular.ttf');
-  yellowFont = color(255, 255, 0);
+  for (let i = 0; i < 6; i++) {
+    rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
+  }
+  for (let i = 0; i < 2; i++) {
+    chickenFrames[i] = loadImage(`sprites/chicken_${i.toString().padStart(2, '0')}.png`);
+  }
+  for (let i = 0; i < 4; i++) {
+    picImgs[i] = loadImage(`sprites/${picNames[i]}`);
+  }
+  for (let i = 0; i < 6; i++) {
+    introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
+  }
+  backgroundIntro1 = loadImage('sprites/backgroundintro_00.png');
+  backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
+  logo = loadImage('sprites/logo.png');
+  backgroundGame = loadImage('sprites/fondbleu.png');
+  for (let i = 128; i >= 1; i--) {
+    backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
+  }
+  mainMusic = loadSound('sounds/main.mp3');
+
+  // Charger le logo Spotify remplacé par spotifylogo2.png
   spotifyLogoImg = loadImage('sprites/spotifylogo2.png');
 }
 
-// SETUP
 function setup() {
-  createCanvas(W, H);
+  canvas = createCanvas(W, H);
+  centerCanvas();
   resetGame();
+  textFont('monospace');
+  textAlign(CENTER, CENTER);
+  noSmooth();
 }
 
-// RESET
-function resetGame() {
-  bird = {
-    x: 50,
-    y: H / 2,
-    vy: 0,
-    size: 24
-  };
-  rockets = [];
-  chickens = [];
-  score = 0;
-  gameOver = false;
+function centerCanvas() {
+  const scaleFactor = Math.min(windowWidth / W, windowHeight / H);
+  const canvasWidth = W * scaleFactor;
+  const canvasHeight = H * scaleFactor;
+  canvas.style('width', `${canvasWidth}px`);
+  canvas.style('height', `${canvasHeight}px`);
+
+  const x = (windowWidth - canvasWidth) / 2;
+  const y = (windowHeight - canvasHeight) / 2;
+  canvas.position(x, y);
 }
 
-// DRAW
+function windowResized() {
+  centerCanvas();
+}
+
 function draw() {
-  background(0);
-  image(bgImg, 0, 0, W, H);
-
-  if (!gameOver) {
-    // Bird physics
-    bird.vy += GRAVITY;
-    bird.y += bird.vy;
-
-    // Draw bird
-    image(birdImg, bird.x, bird.y, bird.size, bird.size);
-
-    // Spawn rockets
-    if (frameCount % (ROCKET_RATE * 60) === 0) {
-      let gapY = random(50, H - gap - 50);
-      rockets.push({ x: W, y: gapY });
-    }
-
-    // Spawn chickens
-    if (frameCount % (CHICKEN_RATE * 60) === 0) {
-      let cy = random(50, H - 50);
-      chickens.push({ x: W, y: cy });
-    }
-
-    // Rockets update
-    for (let i = rockets.length - 1; i >= 0; i--) {
-      rockets[i].x -= SPEED * 60 / frameRate();
-      image(rocketImg, rockets[i].x, rockets[i].y - rocketImg.height, rocketImg.width, rocketImg.height);
-      image(rocketImg, rockets[i].x, rockets[i].y + gap, rocketImg.width, rocketImg.height);
-
-      // Collision
-      if (collides(bird, rockets[i])) {
-        gameOver = true;
-        best = max(score, best);
-      }
-
-      if (rockets[i].x + rocketImg.width < 0) {
-        rockets.splice(i, 1);
-        score++;
-      }
-    }
-
-    // Chickens update
-    for (let i = chickens.length - 1; i >= 0; i--) {
-      chickens[i].x -= SPEED * 60 / frameRate();
-      image(chickenImg, chickens[i].x, chickens[i].y, chickenImg.width, chickenImg.height);
-
-      if (collides(bird, chickens[i])) {
-        score++;
-        chickens.splice(i, 1);
-      }
-
-      if (chickens[i].x + chickenImg.width < 0) {
-        chickens.splice(i, 1);
-      }
-    }
-
-    // Out of bounds
-    if (bird.y > H || bird.y < 0) {
-      gameOver = true;
-      best = max(score, best);
-    }
-
-    // Score
-    drawScore();
-  } else {
-    drawGameOver();
+  background('#001e38');
+  switch (state) {
+    case 'start': drawStart(); break;
+    case 'play':  drawPlay();  break;
+    case 'over':  drawOver();  break;
   }
 }
 
-// COLLISION
-function collides(b, obj) {
-  let bx = b.x, by = b.y, bs = b.size;
-  let ox = obj.x, oy = obj.y;
-  let ow = obj.width || rocketImg.width;
-  let oh = obj.height || rocketImg.height;
+function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
+  push();
+  imageMode(CENTER);
+  if (frameCount % (60 / ROCKET_RATE) === 0) {
+    rocketIdx = (rocketIdx + 1) % frames.length;
+  }
+  image(frames[rocketIdx], x, y, width, height);
+  pop();
+}
 
-  // Rocket collision check (gap handling)
-  if (obj === rockets.find(r => r === obj)) {
-    let inX = bx + bs > ox && bx < ox + rocketImg.width;
-    let hitTop = by < oy && bx + bs > ox && bx < ox + rocketImg.width;
-    let hitBottom = by + bs > oy + gap && bx + bs > ox && bx < ox + rocketImg.width;
-    return inX && (hitTop || hitBottom);
+function drawStart() {
+  if (frameCount % 60 === 0) introBackgroundIdx = (introBackgroundIdx + 1) % 2;
+  image(introBackgroundIdx === 0 ? backgroundIntro1 : backgroundIntro2, 0, 0, W, H);
+  let logoWidth = W * 0.8;
+  let logoHeight = logo.height * (logoWidth / logo.width);
+  image(logo, W/2 - logoWidth/2, 100, logoWidth, logoHeight);
+  fill(233, 46, 46);
+  textSize(36); text('FLAPPY FLYMAN', W/2, 100 + logoHeight + 50);
+  drawRocket(W/2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
+  textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
+  textSize(32); text('TO START', W/2, 500);
+}
+
+function drawOver() {
+  image(backgroundGame, 0, 0, W, H);
+  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
+  let bg = backgroundGameFrames[backgroundGameIdx];
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
+
+  fill(233, 46, 46);
+  textSize(36); text('GAME OVER', W/2, 100);
+  textSize(24); text('Score: ' + score, W/2, 150);
+  text('Best: ' + best, W/2, 200);
+  text('TAP or CLICK or SPACE', W/2, 250);
+  textSize(32); text('TO RESTART', W/2, 300);
+
+  // Afficher uniquement le logo spotify comme bouton (220x50) en proportions respectées
+  if (spotifyLogoImg) {
+    imageMode(CENTER);
+    const logoTargetHeight = SPOTIFY_BTN.h * 0.8; // un peu de marge verticale
+    const logoAspectRatio = spotifyLogoImg.width / spotifyLogoImg.height;
+    const logoTargetWidth = logoTargetHeight * logoAspectRatio;
+    const logoX = SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2;
+    const logoY = SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2;
+    image(spotifyLogoImg, logoX, logoY, logoTargetWidth, logoTargetHeight);
+  }
+}
+
+function drawPlay() {
+  image(backgroundGame, 0, 0, W, H);
+  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
+  let bg = backgroundGameFrames[backgroundGameIdx];
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
+
+  rocket.vel += GRAVITY;
+  rocket.y += rocket.vel;
+  drawRocket(rocket.x, rocket.y);
+  if (rocket.y < 0 || rocket.y > H) gameOver();
+
+  let picSpeed = SPEED + score * 0.05;
+  let chickenSpeed = picSpeed * 1.3;
+
+  let enemyFrequency = max(60, 120 - score * 1.5);
+  if (frameCount % enemyFrequency === 0) {
+    if (random() > 0.5) enemies.push(makeChicken());
+    else obstacles.push(makePic());
   }
 
-  // Chicken collision
-  return bx + bs > ox && bx < ox + ow && by + bs > oy && by < oy + oh;
-}
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    let c = enemies[i];
 
-// SCORE DISPLAY
-function drawScore() {
-  fill(255);
-  textFont(fontRegular);
-  textSize(16);
-  textAlign(LEFT);
-  text(`Score: ${score}`, 10, 20);
-  textAlign(RIGHT);
-  text(`Best: ${best}`, W - 10, 20);
-}
+    if (score >= 20) {
+      if (c.vx === undefined) {
+        const v = chickenSpeed / Math.sqrt(2);
+        if (random() < 0.5) {
+          c.vx = -v;
+          c.vy = v;
+        } else {
+          c.vx = -v;
+          c.vy = -v;
+        }
+      }
+      c.x += c.vx;
+      c.y += c.vy;
 
-// GAME OVER DISPLAY
-function drawGameOver() {
-  fill(yellowFont);
-  textFont(fontRegular);
-  textSize(14);
-  textAlign(CENTER);
-  text("Game Over!", W / 2, H / 2 - 60);
-
-  fill(255);
-  textSize(12);
-  text(`Score: ${score}`, W / 2, H / 2 - 40);
-  text(`Best: ${best}`, W / 2, H / 2 - 25);
-
-  // Spotify button sizing
-  let originalW = 840;
-  let originalH = 324;
-  let scaleFactor = 0.25;
-  spotifyBtnW = originalW * scaleFactor;
-  spotifyBtnH = originalH * scaleFactor;
-
-  spotifyBtnX = W / 2 - spotifyBtnW / 2;
-  spotifyBtnY = H / 2;
-
-  image(spotifyLogoImg, spotifyBtnX, spotifyBtnY, spotifyBtnW, spotifyBtnH);
-}
-
-// CLICK HANDLER
-function mousePressed() {
-  if (gameOver) {
-    if (
-      mouseX >= spotifyBtnX &&
-      mouseX <= spotifyBtnX + spotifyBtnW &&
-      mouseY >= spotifyBtnY &&
-      mouseY <= spotifyBtnY + spotifyBtnH
-    ) {
-      window.open("https://open.spotify.com/playlist/xxxxxxxxxxxx", "_blank");
+      if (c.y < 0) {
+        c.y = 0;
+        c.vy = -c.vy;
+      } else if (c.y + c.h > H) {
+        c.y = H - c.h;
+        c.vy = -c.vy;
+      }
     } else {
-      resetGame();
+      c.x -= chickenSpeed;
+    }
+
+    drawChicken(c);
+    if (c.x + c.w < 0) enemies.splice(i, 1);
+    if (hitRocket(rocket, c)) gameOver();
+    if (!c.passed && c.x + c.w < rocket.x) {
+      c.passed = true;
+      score++;
+    }
+  }
+
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    let p = obstacles[i];
+    p.x -= picSpeed;
+    drawPic(p);
+    if (p.x + p.w < 0) obstacles.splice(i, 1);
+    if (hitRocket(rocket, p)) gameOver();
+    if (!p.passed && p.x + p.w < rocket.x) {
+      p.passed = true;
+      score++;
+    }
+  }
+
+  fill(233, 46, 46);
+  textSize(36);
+  text(score, W/2, 60);
+}
+
+function drawChicken(c) {
+  push();
+  imageMode(CENTER);
+  if (frameCount % (60 / CHICKEN_RATE) === 0) chickenIdx = (chickenIdx + 1) % chickenFrames.length;
+  image(chickenFrames[chickenIdx], c.x + 25, c.y + 25, 50, 50);
+  pop();
+}
+
+function drawPic(p) {
+  image(p.img, p.x, p.y, p.w, p.h);
+}
+
+function makeChicken() {
+  return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false };
+}
+
+function makePic() {
+  const idx = floor(random(4));
+  const img = picImgs[idx];
+  let y, w, h, hitboxW;
+  switch (picNames[idx]) {
+    case 'pic_petit_haut.png': w = h = 80 * 1.05; hitboxW = 20; y = 0; break;
+    case 'pic_petit_bas.png': w = h = 80 * 1.05; hitboxW = 20; y = H - h; break;
+    case 'pic_gros_haut.png': w = h = 120 * 1.05; hitboxW = 40; y = 0; break;
+    case 'pic_gros_bas.png': w = h = 120 * 1.05; hitboxW = 40; y = H - h; break;
+  }
+  return { x: W, y, w, h, hitboxW, img, passed: false };
+}
+
+function hitRocket(r, o) {
+  const wR = 100, hR = 34;
+  return (r.x - wR / 2 < o.x + o.w && r.x + wR / 2 > o.x) &&
+         (r.y - hR / 2 < o.y + o.h && r.y + hR / 2 > o.y);
+}
+
+function resetGame() {
+  rocket = { x: 100, y: H / 2, vel: 0 };
+  enemies = [];
+  obstacles = [];
+  score = 0;
+}
+
+function startMusic() {
+  if (mainMusic && mainMusic.isLoaded()) {
+    if (!mainMusic.isPlaying()) {
+      mainMusic.play();
+      mainMusic.setLoop(true);
     }
   }
 }
 
-// KEYPRESS
-function keyPressed() {
-  if (key === ' ' && !gameOver) {
-    bird.vy = FLAP;
-  } else if (key === ' ' && gameOver) {
-    resetGame();
+function stopMusic() {
+  if (mainMusic && mainMusic.isPlaying()) {
+    mainMusic.stop();
   }
+}
+
+function gameOver() {
+  state = 'over';
+  best = max(score, best);
+  stopMusic();
+}
+
+function action() {
+  if (state === 'start') {
+    resetGame();
+    state = 'play';
+    startMusic();
+  } else if (state === 'play') {
+    rocket.vel = FLAP;
+  } else if (state === 'over') {
+    resetGame();
+    state = 'play';
+    startMusic();
+  }
+}
+
+function keyPressed() {
+  if (key === ' ') action();
+}
+
+function mousePressed() {
+  if(state === 'over') {
+    if (
+      mouseX >= SPOTIFY_BTN.x &&
+      mouseX <= SPOTIFY_BTN.x + SPOTIFY_BTN.w &&
+      mouseY >= SPOTIFY_BTN.y &&
+      mouseY <= SPOTIFY_BTN.y + SPOTIFY_BTN.h
+    ) {
+      window.open(SPOTIFY_URL, '_blank');
+      return; // ne pas relancer la partie si bouton cliqué
+    }
+  }
+  action();
 }
