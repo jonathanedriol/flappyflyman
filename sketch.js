@@ -38,6 +38,7 @@ const funnyPhrases = [
   "100% effort, 0% survival. 💪",
   "Better luck next launch! 🚀"
 ];
+
 let funnyPhraseIndex = 0;
 
 function preload() {
@@ -117,13 +118,10 @@ function drawStart() {
   let logoHeight = logo.height * (logoWidth / logo.width);
   image(logo, W/2 - logoWidth/2, 100, logoWidth, logoHeight);
   fill(233, 46, 46);
-  textSize(36);
-  text('FLAPPY FLYMAN', W/2, 100 + logoHeight + 50);
+  textSize(36); text('FLAPPY FLYMAN', W/2, 100 + logoHeight + 50);
   drawRocket(W/2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
-  textSize(24);
-  text('TAP or CLICK or SPACE', W/2, 450);
-  textSize(32);
-  text('TO START', W/2, 500);
+  textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
+  textSize(32); text('TO START', W/2, 500);
 }
 
 function drawOver() {
@@ -136,18 +134,51 @@ function drawOver() {
 
   fill(233, 46, 46);
   textSize(24);
-  text('Score: ' + score, W/2, 130);
-  text('Best: ' + best, W/2, 170);
+  // Supprimer "GAME OVER"
+  // Supprimer "TAP or CLICK or SPACE" et "TO RESTART"
+  
+  textSize(36); text('Score: ' + score, W/2, 150);
+  text('Best: ' + best, W/2, 200);
 
-  // Phrase rigolote jaune, centré, retour à la ligne max 80% largeur canvas
-  fill(255, 223, 0); // jaune
+  // Phrase rigolote multi-lignes centrée jaune
+  fill(255, 223, 0);
   textSize(18);
-  textAlign(CENTER, CENTER);
-  const maxWidth = W * 0.8;
-  textWrap(WORD);
-  text(funnyPhrases[funnyPhraseIndex], W/2, 210, maxWidth);
+  textAlign(LEFT, CENTER); // Pour mesurer largeur précisément
 
-  // Logo Spotify à taille d'origine, centré dans le bouton
+  const maxWidth = W * 0.8;
+  const phrase = funnyPhrases[funnyPhraseIndex];
+
+  // Découpage phrase en lignes pour pas dépasser maxWidth
+  const words = phrase.split(' ');
+  let lines = [];
+  let currentLine = '';
+
+  for (let i = 0; i < words.length; i++) {
+    let testLine = currentLine + (currentLine ? ' ' : '') + words[i];
+    let testWidth = textWidth(testLine);
+    if (testWidth > maxWidth) {
+      if (currentLine) lines.push(currentLine);
+      currentLine = words[i];
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  // Calcul hauteur et position vertical pour centrer
+  const lineHeight = textAscent() + textDescent() + 2;
+  const startY = 210 - (lines.length - 1) * lineHeight / 2;
+
+  // Dessiner chaque ligne centrée horizontalement
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    let lineWidth = textWidth(line);
+    let x = W/2 - lineWidth/2;
+    let y = startY + i * lineHeight;
+    text(line, x, y);
+  }
+
+  // Logo Spotify (spotifylogo2.png), taille et position d’origine, sans redimensionner
   push();
   noStroke();
   if (spotifyLogoImg) {
@@ -273,6 +304,9 @@ function resetGame() {
   enemies = [];
   obstacles = [];
   score = 0;
+
+  // Changer phrase rigolote à chaque reset (fin de partie)
+  funnyPhraseIndex = floor(random(funnyPhrases.length));
 }
 
 function startMusic() {
@@ -294,9 +328,6 @@ function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
-
-  // Change la phrase rigolote à chaque game over
-  funnyPhraseIndex = (funnyPhraseIndex + 1) % funnyPhrases.length;
 }
 
 function action() {
