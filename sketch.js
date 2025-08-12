@@ -13,7 +13,8 @@ let introBackgroundIdx = 0;
 let mainMusic;
 
 const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
-const SPOTIFY_BTN = { x: W/2 - 100, y: 340, w: 200, h: 50 }; // plus large et plus bas
+const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // ajusté largeur pour logo + texte
+let spotifyLogoImg;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -36,6 +37,9 @@ function preload() {
     backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
   }
   mainMusic = loadSound('sounds/main.mp3');
+
+  // Charger le logo Spotify
+  spotifyLogoImg = loadImage('sprites/spotifylogo.png');
 }
 
 function setup() {
@@ -110,17 +114,24 @@ function drawOver() {
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
 
-  // Bouton Spotify - visible et avec contour blanc
+  // Bouton Spotify avec texte + logo
   push();
-  fill('#191414'); // fond noir très foncé Spotify
+  fill('#191414'); // fond sombre Spotify
   stroke(255);
   strokeWeight(3);
   rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 12);
+
+  // Texte
   noStroke();
-  fill('#1DB954'); // texte vert Spotify
+  fill('#1DB954'); // vert Spotify
   textSize(20);
-  textAlign(CENTER, CENTER);
-  text('🎵 Open Spotify Track', SPOTIFY_BTN.x + SPOTIFY_BTN.w/2, SPOTIFY_BTN.y + SPOTIFY_BTN.h/2);
+  textAlign(LEFT, CENTER);
+  text('Listen on', SPOTIFY_BTN.x + 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
+
+  // Logo Spotify à droite du texte
+  imageMode(CENTER);
+  const logoSize = 30;
+  image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoSize - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoSize, logoSize);
   pop();
 }
 
