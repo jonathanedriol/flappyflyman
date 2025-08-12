@@ -16,32 +16,17 @@ const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBN
 const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
 let spotifyLogoImg;
 
-// Variable pour stocker la phrase rigolote à afficher à l'écran de fin
-let funnyPhrase = '';
-
-// Liste des phrases rigolotes
 const funnyPhrases = [
-  "You'll get 'em next time! 🚀",
-  "The chickens are laughing… for now. 🐔",
-  "Nice try, pilot! ✈️",
-  "Almost made it to the moon! 🌙",
-  "That rocket needs more coffee. ☕",
-  "Gravity wins again! 🪂",
-  "So close… kinda. 😅",
-  "Chickens: 1 — You: 0 🐓",
-  "Even NASA has bad days. 🛰️",
-  "Rocket science is hard, right? 🤓",
-  "Mayday! Mayday! 💥",
-  "Next flight’s on the house. 🛫",
-  "Almost legendary! ✨",
-  "At least you looked cool doing it. 😎",
-  "Not bad for a rookie. 🎯",
-  "Your rocket called… it needs a vacation. 🏝️",
-  "You flew like a boss… until you didn’t. 💀",
-  "Don’t worry, chickens can’t drive rockets. 🐥",
-  "100% effort, 0% survival. 💪",
-  "Better luck next launch! 🚀"
+  "You'll get 'em next time! 🚀","The chickens are laughing… for now. 🐔","Nice try, pilot! ✈️",
+  "Almost made it to the moon! 🌙","That rocket needs more coffee. ☕","Gravity wins again! 🪂",
+  "So close… kinda. 😅","Chickens: 1 — You: 0 🐓","Even NASA has bad days. 🛰️",
+  "Rocket science is hard, right? 🤓","Mayday! Mayday! 💥","Next flight’s on the house. 🛫",
+  "Almost legendary! ✨","At least you looked cool doing it. 😎","Not bad for a rookie. 🎯",
+  "Your rocket called… it needs a vacation. 🏝️","You flew like a boss… until you didn’t. 💀",
+  "Don’t worry, chickens can’t drive rockets. 🐥","100% effort, 0% survival. 💪","Better luck next launch! 🚀"
 ];
+
+let funnyPhrase = '';
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -135,21 +120,22 @@ function drawOver() {
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
 
   fill(233, 46, 46);
-  textSize(24);
-  text('Score: ' + score, W/2, 140);
-  text('Best: ' + best, W/2, 180);
+  textSize(24); text('Score: ' + score, W/2, 150);
+  text('Best: ' + best, W/2, 200);
 
-  // Phrase rigolote aléatoire en jaune
   fill(255, 215, 0);
   textSize(20);
-  text(funnyPhrase, W/2, 220);
+  text(funnyPhrase, W/2, 220, W * 0.9, 100); // retour à la ligne automatique
 
-  // Affichage du logo Spotify à taille originale, centré dans le bouton
+  // Bouton Spotify uniquement logo spotifylogo2.png, même taille & position
   push();
   noStroke();
   if (spotifyLogoImg) {
     imageMode(CENTER);
-    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
+    const logoHeight = SPOTIFY_BTN.h * 0.8; // 80% hauteur bouton
+    const aspectRatio = 840 / 324; // ratio spotifylogo2.png (largeur / hauteur)
+    const logoWidth = logoHeight * aspectRatio;
+    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
   }
   pop();
 }
@@ -270,6 +256,7 @@ function resetGame() {
   enemies = [];
   obstacles = [];
   score = 0;
+  funnyPhrase = ''; // reset phrase rigolote au lancement du jeu
 }
 
 function startMusic() {
@@ -291,8 +278,7 @@ function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
-
-  // Choisir une phrase rigolote au hasard pour cet écran de fin
+  // choisir une phrase rigolote au hasard à afficher une fois à l'écran game over
   funnyPhrase = random(funnyPhrases);
 }
 
