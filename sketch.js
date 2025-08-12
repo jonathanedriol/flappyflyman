@@ -12,6 +12,9 @@ let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
 
+const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
+const SPOTIFY_BTN = { x: W/2 - 80, y: 350, w: 160, h: 40 }; // bouton Spotify en bas au centre écran fin
+
 function preload() {
   for (let i = 0; i < 6; i++) {
     rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
@@ -99,12 +102,23 @@ function drawOver() {
   let bgWidth = bg.width * 0.25;
   let bgHeight = bg.height * 0.25;
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
+  
   fill(233, 46, 46);
   textSize(36); text('GAME OVER', W/2, 100);
   textSize(24); text('Score: ' + score, W/2, 150);
   text('Best: ' + best, W/2, 200);
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
+
+  // Bouton Spotify
+  push();
+  fill('#1DB954'); // vert Spotify
+  rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 10);
+  fill(255);
+  textSize(18);
+  textAlign(CENTER, CENTER);
+  text('🎵 Open Spotify Track', SPOTIFY_BTN.x + SPOTIFY_BTN.w/2, SPOTIFY_BTN.y + SPOTIFY_BTN.h/2);
+  pop();
 }
 
 function drawPlay() {
@@ -265,5 +279,16 @@ function keyPressed() {
 }
 
 function mousePressed() {
+  if(state === 'over') {
+    if (
+      mouseX >= SPOTIFY_BTN.x &&
+      mouseX <= SPOTIFY_BTN.x + SPOTIFY_BTN.w &&
+      mouseY >= SPOTIFY_BTN.y &&
+      mouseY <= SPOTIFY_BTN.y + SPOTIFY_BTN.h
+    ) {
+      window.open(SPOTIFY_URL, '_blank');
+      return; // stop ici, ne pas relancer la partie
+    }
+  }
   action();
 }
