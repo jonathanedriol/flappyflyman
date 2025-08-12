@@ -12,9 +12,10 @@ let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
 
-const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
-const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
-let spotifyLogoImg;
+// suppression du bouton Spotify et texte Listen on
+// const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
+// const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; 
+// let spotifyLogoImg;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -38,8 +39,8 @@ function preload() {
   }
   mainMusic = loadSound('sounds/main.mp3');
 
-  // Charger le nouveau logo Spotify (spotifylogo2.png)
-  spotifyLogoImg = loadImage('sprites/spotifylogo2.png');
+  // suppression du chargement image Spotify
+  // spotifyLogoImg = loadImage('sprites/spotifylogo.png');
 }
 
 function setup() {
@@ -114,17 +115,7 @@ function drawOver() {
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
 
-  // Bouton Spotify uniquement logo spotifylogo2.png, même taille & position
-  push();
-  noStroke();
-  if (spotifyLogoImg) {
-    imageMode(CENTER);
-    const logoHeight = SPOTIFY_BTN.h * 0.8; // 80% hauteur bouton
-    const aspectRatio = 840 / 324; // ratio spotifylogo2.png (largeur / hauteur)
-    const logoWidth = logoHeight * aspectRatio;
-    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
-  }
-  pop();
+  // suppression du bouton Spotify et texte associé
 }
 
 function drawPlay() {
@@ -285,16 +276,6 @@ function keyPressed() {
 }
 
 function mousePressed() {
-  if(state === 'over') {
-    if (
-      mouseX >= SPOTIFY_BTN.x &&
-      mouseX <= SPOTIFY_BTN.x + SPOTIFY_BTN.w &&
-      mouseY >= SPOTIFY_BTN.y &&
-      mouseY <= SPOTIFY_BTN.y + SPOTIFY_BTN.h
-    ) {
-      window.open(SPOTIFY_URL, '_blank');
-      return; // ne pas relancer la partie si bouton cliqué
-    }
-  }
+  // suppression clic sur bouton Spotify
   action();
 }
