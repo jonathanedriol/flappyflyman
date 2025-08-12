@@ -1,4 +1,3 @@
-/* Base existante */
 body {
   margin: 0;
   padding: 0;
@@ -16,38 +15,4 @@ canvas {
   max-width: 100%;
   height: auto;
   margin: auto;
-  position: relative;
-  z-index: 0;
-}
-
-/* Style bouton Spotify */
-#spotify-button {
-  position: fixed !important;
-  bottom: 80px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  z-index: 10000 !important;
-  cursor: pointer !important;
-  user-select: none !important;
-  display: block !important;
-  background-color: #1DB954 !important;
-  color: #fff !important;
-  padding: 14px 32px !important;
-  border-radius: 30px !important;
-  font-weight: 700 !important;
-  font-size: 18px !important;
-  text-decoration: none !important;
-  text-align: center !important;
-  box-shadow: 0 0 12px #1DB954 !important;
-  animation: pulse 2.5s infinite ease-in-out !important;
-}
-
-/* Animation pulsation bouton */
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 0 12px #1DB954;
-  }
-  50% {
-    box-shadow: 0 0 22px #1DB954;
-  }
 }

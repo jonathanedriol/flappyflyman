@@ -12,33 +12,6 @@ let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
 
-// --- NOUVEAU : variables phrases et lien Spotify ---
-const spotifyUrl = "https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=e9691dc8dcd64510";
-const phrases = [
-  "You'll get 'em next time! 🚀",
-  "The chickens are laughing… for now. 🐔",
-  "Nice try, pilot! ✈️",
-  "Almost made it to the moon! 🌙",
-  "That rocket needs more coffee. ☕",
-  "Gravity wins again! 🪂",
-  "So close… kinda. 😅",
-  "Chickens: 1 — You: 0 🐓",
-  "Even NASA has bad days. 🛰️",
-  "Rocket science is hard, right? 🤓",
-  "Mayday! Mayday! 💥",
-  "Next flight’s on the house. 🛫",
-  "Almost legendary! ✨",
-  "At least you looked cool doing it. 😎",
-  "Not bad for a rookie. 🎯",
-  "Your rocket called… it needs a vacation. 🏝️",
-  "You flew like a boss… until you didn’t. 💀",
-  "Don’t worry, chickens can’t drive rockets. 🐥",
-  "100% effort, 0% survival. 💪",
-  "Better luck next launch! 🚀",
-];
-let currentPhrase = "";
-
-// --- preload, setup, etc restent identiques ---
 function preload() {
   for (let i = 0; i < 6; i++) {
     rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
@@ -69,8 +42,6 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-
-  createSpotifyButton(); // Crée le bouton dès setup, caché au départ
 }
 
 function centerCanvas() {
@@ -83,23 +54,18 @@ function centerCanvas() {
   const x = (windowWidth - canvasWidth) / 2;
   const y = (windowHeight - canvasHeight) / 2;
   canvas.position(x, y);
-
-  // Positionner le bouton Spotify au même centre horizontalement
-  positionSpotifyButton();
 }
 
 function windowResized() {
   centerCanvas();
 }
 
-// --- DESSINS & LOGIQUE DE JEU ---
-
 function draw() {
   background('#001e38');
   switch (state) {
-    case 'start': drawStart(); hideSpotifyButton(); break;
-    case 'play':  drawPlay();  hideSpotifyButton(); break;
-    case 'over':  drawOver();  showSpotifyButton(); break;
+    case 'start': drawStart(); break;
+    case 'play':  drawPlay();  break;
+    case 'over':  drawOver();  break;
   }
 }
 
@@ -124,6 +90,21 @@ function drawStart() {
   drawRocket(W/2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
   textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
   textSize(32); text('TO START', W/2, 500);
+}
+
+function drawOver() {
+  image(backgroundGame, 0, 0, W, H);
+  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
+  let bg = backgroundGameFrames[backgroundGameIdx];
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
+  fill(233, 46, 46);
+  textSize(36); text('GAME OVER', W/2, 100);
+  textSize(24); text('Score: ' + score, W/2, 150);
+  text('Best: ' + best, W/2, 200);
+  text('TAP or CLICK or SPACE', W/2, 250);
+  textSize(32); text('TO RESTART', W/2, 300);
 }
 
 function drawPlay() {
@@ -244,7 +225,6 @@ function resetGame() {
   score = 0;
 }
 
-// Gestion musique
 function startMusic() {
   if (mainMusic && mainMusic.isLoaded()) {
     if (!mainMusic.isPlaying()) {
@@ -260,117 +240,12 @@ function stopMusic() {
   }
 }
 
-// --- FONCTION gameOver modifiée pour mettre la phrase aléatoire ---
 function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
-
-  // Tirage phrase humoristique aléatoire à chaque game over
-  currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 }
 
-// --- NOUVELLE FONCTION pour créer le bouton Spotify DOM au setup ---
-function createSpotifyButton() {
-  let btn = document.getElementById('spotifyBtn');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'spotifyBtn';
-    btn.textContent = "🎵 Listen on Spotify";
-
-    // Styles bouton
-    Object.assign(btn.style, {
-      position: 'fixed',
-      bottom: '40px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      padding: '16px 36px',
-      fontSize: '22px',
-      fontWeight: 'bold',
-      color: '#1DB954',
-      backgroundColor: '#000',
-      border: '3px solid #1DB954',
-      borderRadius: '30px',
-      cursor: 'pointer',
-      boxShadow: '0 0 10px #1DB954',
-      animation: 'pulse 2s infinite',
-      zIndex: 10000,
-      userSelect: 'none',
-      display: 'none', // caché au départ
-    });
-
-    // Injection animation pulse CSS si pas encore injectée
-    if (!document.getElementById('pulseAnimation')) {
-      const style = document.createElement('style');
-      style.id = 'pulseAnimation';
-      style.textContent = `
-        @keyframes pulse {
-          0% { box-shadow: 0 0 10px #1DB954; }
-          50% { box-shadow: 0 0 20px #1DB954; }
-          100% { box-shadow: 0 0 10px #1DB954; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    btn.addEventListener('click', () => {
-      window.open(spotifyUrl, '_blank');
-    });
-
-    document.body.appendChild(btn);
-  }
-}
-
-// --- Fonctions pour afficher/cacher le bouton Spotify ---
-function showSpotifyButton() {
-  const btn = document.getElementById('spotifyBtn');
-  if (btn) btn.style.display = 'block';
-}
-
-function hideSpotifyButton() {
-  const btn = document.getElementById('spotifyBtn');
-  if (btn) btn.style.display = 'none';
-}
-
-// --- Positionne le bouton Spotify au centre horizontal, à 40px du bas ---
-function positionSpotifyButton() {
-  const btn = document.getElementById('spotifyBtn');
-  if (!btn) return;
-  // Toujours centré horizontalement via CSS transform (déjà fait)
-  // Optionnel : ajuster position verticale si besoin selon hauteur fenêtre
-  btn.style.bottom = '40px';
-}
-
-// --- MODIFICATION principale : drawOver modifié pour afficher la phrase + score + bouton ---
-function drawOver() {
-  image(backgroundGame, 0, 0, W, H);
-  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
-  let bg = backgroundGameFrames[backgroundGameIdx];
-  let bgWidth = bg.width * 0.25;
-  let bgHeight = bg.height * 0.25;
-  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
-
-  fill(233, 46, 46);
-  textSize(36);
-  textAlign(CENTER, CENTER);
-
-  // Score & Best en haut centre (un peu plus haut que dans drawPlay)
-  text(`Score: ${score}    Best: ${best}`, W / 2, 80);
-
-  // Phrase humoristique jaune sous le score
-  fill('yellow');
-  textSize(28);
-  text(currentPhrase, W / 2, 130);
-
-  // Instruction restart (plus bas)
-  fill(233, 46, 46);
-  textSize(24);
-  text('TAP or CLICK or SPACE', W / 2, 200);
-  textSize(32);
-  text('TO RESTART', W / 2, 250);
-}
-
-// --- Input & contrôles ---
 function action() {
   if (state === 'start') {
     resetGame();
@@ -382,7 +257,6 @@ function action() {
     resetGame();
     state = 'play';
     startMusic();
-    hideSpotifyButton();
   }
 }
 
