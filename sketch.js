@@ -5,6 +5,7 @@ let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gr
 let introFrames = [];
 let backgroundIntro1, backgroundIntro2, logo;
 let backgroundGameFrames = [], backgroundGameIdx = 0;
+let backgroundGame;
 const GRAVITY = 0.4, FLAP = -7, W = 360, H = 640;
 let SPEED = 1.5, ROCKET_RATE = 6, CHICKEN_RATE = 8;
 let state = 'start';
@@ -16,6 +17,7 @@ const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBN
 const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
 let spotifyLogoImg;
 
+// Funny phrases
 const funnyPhrases = [
   "You'll get 'em next time! 🚀",
   "The chickens are laughing… for now. 🐔",
@@ -39,7 +41,7 @@ const funnyPhrases = [
   "Better luck next launch! 🚀"
 ];
 
-let funnyPhraseIndex = 0;
+let funnyPhrase = ''; // phrase choisie au game over
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -63,7 +65,7 @@ function preload() {
   }
   mainMusic = loadSound('sounds/main.mp3');
 
-  // Charger le nouveau logo Spotify (spotifylogo2.png)
+  // Charger le logo Spotify 2 (sans redimensionnement automatique)
   spotifyLogoImg = loadImage('sprites/spotifylogo2.png');
 }
 
@@ -132,53 +134,19 @@ function drawOver() {
   let bgHeight = bg.height * 0.25;
   image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
 
+  // Score & Best centrés (par rapport au canvas)
   fill(233, 46, 46);
-  textSize(24);
-  // Supprimer "GAME OVER"
-  // Supprimer "TAP or CLICK or SPACE" et "TO RESTART"
-  
-  textSize(36); text('Score: ' + score, W/2, 150);
-  text('Best: ' + best, W/2, 200);
+  textSize(28);
+  textAlign(CENTER, CENTER);
+  text('Score: ' + score, W/2, 140);
+  text('Best: ' + best, W/2, 180);
 
-  // Phrase rigolote multi-lignes centrée jaune
-  fill(255, 223, 0);
+  // Phrase rigolote multi-lignes centrée (wrap + centrage ligne par ligne)
+  fill(255, 215, 0); // jaune doré
   textSize(18);
-  textAlign(LEFT, CENTER); // Pour mesurer largeur précisément
+  drawCenteredWrappedText(funnyPhrase, W/2, 220, W * 0.85, 22);
 
-  const maxWidth = W * 0.8;
-  const phrase = funnyPhrases[funnyPhraseIndex];
-
-  // Découpage phrase en lignes pour pas dépasser maxWidth
-  const words = phrase.split(' ');
-  let lines = [];
-  let currentLine = '';
-
-  for (let i = 0; i < words.length; i++) {
-    let testLine = currentLine + (currentLine ? ' ' : '') + words[i];
-    let testWidth = textWidth(testLine);
-    if (testWidth > maxWidth) {
-      if (currentLine) lines.push(currentLine);
-      currentLine = words[i];
-    } else {
-      currentLine = testLine;
-    }
-  }
-  if (currentLine) lines.push(currentLine);
-
-  // Calcul hauteur et position vertical pour centrer
-  const lineHeight = textAscent() + textDescent() + 2;
-  const startY = 210 - (lines.length - 1) * lineHeight / 2;
-
-  // Dessiner chaque ligne centrée horizontalement
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
-    let lineWidth = textWidth(line);
-    let x = W/2 - lineWidth/2;
-    let y = startY + i * lineHeight;
-    text(line, x, y);
-  }
-
-  // Logo Spotify (spotifylogo2.png), taille et position d’origine, sans redimensionner
+  // Spotify logo (taille d'origine, centré dans la zone bouton)
   push();
   noStroke();
   if (spotifyLogoImg) {
@@ -304,9 +272,7 @@ function resetGame() {
   enemies = [];
   obstacles = [];
   score = 0;
-
-  // Changer phrase rigolote à chaque reset (fin de partie)
-  funnyPhraseIndex = floor(random(funnyPhrases.length));
+  funnyPhrase = ''; // clear phrase until next game over
 }
 
 function startMusic() {
@@ -328,6 +294,9 @@ function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
+
+  // choose one funny phrase for this game over
+  funnyPhrase = random(funnyPhrases);
 }
 
 function action() {
@@ -349,7 +318,8 @@ function keyPressed() {
 }
 
 function mousePressed() {
-  if(state === 'over') {
+  if (state === 'over') {
+    // detect click on spotify logo area (using button rect in canvas coords)
     if (
       mouseX >= SPOTIFY_BTN.x &&
       mouseX <= SPOTIFY_BTN.x + SPOTIFY_BTN.w &&
@@ -357,8 +327,46 @@ function mousePressed() {
       mouseY <= SPOTIFY_BTN.y + SPOTIFY_BTN.h
     ) {
       window.open(SPOTIFY_URL, '_blank');
-      return; // ne pas relancer la partie si bouton cliqué
+      return; // don't restart the game when clicking the spotify logo
     }
   }
   action();
+}
+
+/* ---------- Helper: draw centered wrapped text (line-by-line centering) ---------- */
+function drawCenteredWrappedText(txt, centerX, centerY, maxWidth, lineHeight = 20) {
+  if (!txt) return;
+  push();
+  textAlign(LEFT, CENTER); // measure with LEFT
+  textSize(18); // ensure measurement same as drawing
+  let words = txt.split(' ');
+  let lines = [];
+  let currentLine = '';
+
+  for (let i = 0; i < words.length; i++) {
+    let testLine = currentLine ? (currentLine + ' ' + words[i]) : words[i];
+    let tw = textWidth(testLine);
+    if (tw > maxWidth) {
+      if (currentLine) lines.push(currentLine);
+      currentLine = words[i];
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  // compute vertical start to center the block on centerY
+  const totalH = lines.length * lineHeight;
+  let startY = centerY - totalH / 2 + lineHeight / 2;
+
+  // draw each line centered horizontally
+  textAlign(LEFT, CENTER);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lw = textWidth(line);
+    const x = centerX - lw / 2;
+    const y = startY + i * lineHeight;
+    text(line, x, y);
+  }
+  pop();
 }
