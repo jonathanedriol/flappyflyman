@@ -12,10 +12,9 @@ let canvas;
 let introBackgroundIdx = 0;
 let mainMusic;
 
-// suppression du bouton Spotify et texte Listen on
-// const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
-// const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; 
-// let spotifyLogoImg;
+const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
+const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
+let spotifyLogoImg;
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -39,8 +38,8 @@ function preload() {
   }
   mainMusic = loadSound('sounds/main.mp3');
 
-  // suppression du chargement image Spotify
-  // spotifyLogoImg = loadImage('sprites/spotifylogo.png');
+  // Charger le logo Spotify 2
+  spotifyLogoImg = loadImage('sprites/spotifylogo2.png');
 }
 
 function setup() {
@@ -115,7 +114,31 @@ function drawOver() {
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
 
-  // suppression du bouton Spotify et texte associé
+  // Bouton Spotify avec texte + logo spotifylogo2.png
+  push();
+  fill('#191414'); // fond sombre Spotify
+  stroke(255);
+  strokeWeight(3);
+  rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 12);
+
+  noStroke();
+  fill('#1DB954'); // vert Spotify
+  textSize(20);
+  textAlign(LEFT, CENTER);
+  text('Listen on', SPOTIFY_BTN.x + 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
+
+  if (spotifyLogoImg) {
+    imageMode(CENTER);
+    const logoHeight = 40;  // taille légèrement agrandie
+    const aspectRatio = spotifyLogoImg.width / spotifyLogoImg.height;
+    const logoWidth = logoHeight * aspectRatio;
+    image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w - logoWidth / 2 - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2, logoWidth, logoHeight);
+  } else {
+    fill('#1DB954');
+    textAlign(RIGHT, CENTER);
+    text('Spotify', SPOTIFY_BTN.x + SPOTIFY_BTN.w - 15, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
+  }
+  pop();
 }
 
 function drawPlay() {
@@ -276,6 +299,16 @@ function keyPressed() {
 }
 
 function mousePressed() {
-  // suppression clic sur bouton Spotify
+  if(state === 'over') {
+    if (
+      mouseX >= SPOTIFY_BTN.x &&
+      mouseX <= SPOTIFY_BTN.x + SPOTIFY_BTN.w &&
+      mouseY >= SPOTIFY_BTN.y &&
+      mouseY <= SPOTIFY_BTN.y + SPOTIFY_BTN.h
+    ) {
+      window.open(SPOTIFY_URL, '_blank');
+      return; // ne pas relancer la partie si bouton cliqué
+    }
+  }
   action();
 }
