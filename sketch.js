@@ -13,7 +13,7 @@ let introBackgroundIdx = 0;
 let mainMusic;
 
 const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
-const SPOTIFY_BTN = { x: W/2 - 80, y: 350, w: 160, h: 40 }; // bouton Spotify en bas au centre écran fin
+const SPOTIFY_BTN = { x: W/2 - 100, y: 340, w: 200, h: 50 }; // plus large et plus bas
 
 function preload() {
   for (let i = 0; i < 6; i++) {
@@ -110,12 +110,15 @@ function drawOver() {
   text('TAP or CLICK or SPACE', W/2, 250);
   textSize(32); text('TO RESTART', W/2, 300);
 
-  // Bouton Spotify
+  // Bouton Spotify - visible et avec contour blanc
   push();
-  fill('#1DB954'); // vert Spotify
-  rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 10);
-  fill(255);
-  textSize(18);
+  fill('#191414'); // fond noir très foncé Spotify
+  stroke(255);
+  strokeWeight(3);
+  rect(SPOTIFY_BTN.x, SPOTIFY_BTN.y, SPOTIFY_BTN.w, SPOTIFY_BTN.h, 12);
+  noStroke();
+  fill('#1DB954'); // texte vert Spotify
+  textSize(20);
   textAlign(CENTER, CENTER);
   text('🎵 Open Spotify Track', SPOTIFY_BTN.x + SPOTIFY_BTN.w/2, SPOTIFY_BTN.y + SPOTIFY_BTN.h/2);
   pop();
