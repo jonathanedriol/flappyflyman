@@ -138,8 +138,8 @@ function drawOver() {
   fill(233, 46, 46);
   textSize(28);
   textAlign(CENTER, CENTER);
-  text('Score: ' + score, W/2, 120);
-  text('Best: ' + best, W/2, 160);
+  text('Score: ' + score, W/2, 1100);
+  text('Best: ' + best, W/2, 140);
 
   // Phrase rigolote multi-lignes centrée (wrap + centrage ligne par ligne)
   fill(255, 215, 0); // jaune doré
