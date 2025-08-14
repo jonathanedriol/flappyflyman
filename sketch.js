@@ -143,7 +143,7 @@ function drawOver() {
 
   // Phrase rigolote multi-lignes centrée (wrap + centrage ligne par ligne)
   fill(255, 215, 0); // jaune doré
-  textSize(30);
+  textSize(40);
   drawCenteredWrappedText(funnyPhrase, W/2, 220, W * 0.85, 22);
 
   // Spotify logo (taille d'origine, centré dans la zone bouton)
