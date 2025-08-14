@@ -138,12 +138,12 @@ function drawOver() {
   fill(233, 46, 46);
   textSize(28);
   textAlign(CENTER, CENTER);
-  text('Score: ' + score, W/2, 140);
-  text('Best: ' + best, W/2, 180);
+  text('Score: ' + score, W/2, 120);
+  text('Best: ' + best, W/2, 160);
 
   // Phrase rigolote multi-lignes centrée (wrap + centrage ligne par ligne)
   fill(255, 215, 0); // jaune doré
-  textSize(18);
+  textSize(24);
   drawCenteredWrappedText(funnyPhrase, W/2, 220, W * 0.85, 22);
 
   // Spotify logo (taille d'origine, centré dans la zone bouton)
