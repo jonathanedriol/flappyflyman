@@ -1,4 +1,4 @@
-// Flappy Flyman — version clean + optimisations (lazy-load BG, mobile tap/audio, styles)
+// Flappy Flyman – version stabilisée + diagonales poulets à partir de 20 points + son ok
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png', 'pic_petit_bas.png', 'pic_gros_haut.png', 'pic_gros_bas.png'];
@@ -14,23 +14,35 @@ let introBackgroundIdx = 0;
 let mainMusic;
 
 const SPOTIFY_URL = 'https://open.spotify.com/intl-fr/track/27VtBFVZRFBLbn2dKnBNSX?si=92cfaaf424304bca';
-const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 };
+const SPOTIFY_BTN = { x: W/2 - 110, y: 335, w: 220, h: 50 }; // position et taille bouton Spotify
 let spotifyLogoImg;
 
 // Funny phrases
 const funnyPhrases = [
-  "You'll get 'em next time! 🚀","The chickens are laughing… for now. 🐔","Nice try, pilot! ✈️",
-  "Almost made it to the moon! 🌙","That rocket needs more coffee. ☕","Gravity wins again! 🪂",
-  "So close… kinda. 😅","Chickens: 1 — You: 0 🐓","Even NASA has bad days. 🛰️",
-  "Rocket science is hard, right? 🤓","Mayday! Mayday! 💥","Next flight’s on the house. 🛫",
-  "Almost legendary! ✨","At least you looked cool doing it. 😎","Not bad for a rookie. 🎯",
-  "Your rocket called… it needs a vacation. 🏝️","You flew like a boss… until you didn’t. 💀",
-  "Don’t worry, chickens can’t drive rockets. 🐥","100% effort, 0% survival. 💪","Better luck next launch! 🚀"
+  "You'll get 'em next time! 🚀",
+  "The chickens are laughing… for now. 🐔",
+  "Nice try, pilot! ✈️",
+  "Almost made it to the moon! 🌙",
+  "That rocket needs more coffee. ☕",
+  "Gravity wins again! 🪂",
+  "So close… kinda. 😅",
+  "Chickens: 1 — You: 0 🐓",
+  "Even NASA has bad days. 🛰️",
+  "Rocket science is hard, right? 🤓",
+  "Mayday! Mayday! 💥",
+  "Next flight’s on the house. 🛫",
+  "Almost legendary! ✨",
+  "At least you looked cool doing it. 😎",
+  "Not bad for a rookie. 🎯",
+  "Your rocket called… it needs a vacation. 🏝️",
+  "You flew like a boss… until you didn’t. 💀",
+  "Don’t worry, chickens can’t drive rockets. 🐥",
+  "100% effort, 0% survival. 💪",
+  "Better luck next launch! 🚀"
 ];
 
-let funnyPhrase = '';
+let funnyPhrase = ''; // phrase choisie au game over
 
-// ---------- PRELOAD: seulement les assets critiques (le reste en lazy-load) ----------
 function preload() {
   for (let i = 0; i < 6; i++) {
     rocketFrames[i] = loadImage(`sprites/frame_${i.toString().padStart(2, '0')}.png`);
@@ -41,7 +53,6 @@ function preload() {
   for (let i = 0; i < 4; i++) {
     picImgs[i] = loadImage(`sprites/${picNames[i]}`);
   }
-  // Intro: 6 frames seulement, ça reste léger
   for (let i = 0; i < 6; i++) {
     introFrames[i] = loadImage(`sprites/avatarintro_${i.toString().padStart(3, '0')}.png`);
   }
@@ -49,9 +60,12 @@ function preload() {
   backgroundIntro2 = loadImage('sprites/backgroundintro_01.png');
   logo = loadImage('sprites/logo.png');
   backgroundGame = loadImage('sprites/fondbleu.png');
-
+  for (let i = 128; i >= 1; i--) {
+    backgroundGameFrames[128 - i] = loadImage(`sprites/background_${i.toString().padStart(3, '0')}.png`);
+  }
   mainMusic = loadSound('sounds/main.mp3');
 
+  // Charger le logo Spotify 2 (sans redimensionnement automatique)
   spotifyLogoImg = loadImage('sprites/spotifylogo2.png');
 }
 
@@ -62,10 +76,6 @@ function setup() {
   textFont('monospace');
   textAlign(CENTER, CENTER);
   noSmooth();
-
-  // Lancement non-bloquant du chargement des 128 frames du fond (séquentiel)
-  // pour éviter un burst de 128 requêtes au démarrage (mobile-friendly).
-  setTimeout(() => loadBgAnimFramesSequential(128), 100);
 }
 
 function centerCanvas() {
@@ -93,11 +103,10 @@ function draw() {
   }
 }
 
-// ---------- DRAW HELPERS ----------
 function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
   push();
   imageMode(CENTER);
-  if (frameCount % Math.max(1, Math.floor(60 / ROCKET_RATE)) === 0) {
+  if (frameCount % (60 / ROCKET_RATE) === 0) {
     rocketIdx = (rocketIdx + 1) % frames.length;
   }
   image(frames[rocketIdx], x, y, width, height);
@@ -107,74 +116,63 @@ function drawRocket(x, y, frames = rocketFrames, width = 100, height = 34) {
 function drawStart() {
   if (frameCount % 60 === 0) introBackgroundIdx = (introBackgroundIdx + 1) % 2;
   image(introBackgroundIdx === 0 ? backgroundIntro1 : backgroundIntro2, 0, 0, W, H);
-
-  const logoWidth = W * 0.8;
-  const logoHeight = logo.height * (logoWidth / logo.width);
+  let logoWidth = W * 0.8;
+  let logoHeight = logo.height * (logoWidth / logo.width);
   image(logo, W/2 - logoWidth/2, 100, logoWidth, logoHeight);
-
   fill(233, 46, 46);
-  textAlign(CENTER, CENTER);
   textSize(36); text('FLAPPY FLYMAN', W/2, 100 + logoHeight + 50);
-
-  // avatar intro animé
   drawRocket(W/2, 300, introFrames, 300, introFrames[0].height * (300 / introFrames[0].width));
-
   textSize(24); text('TAP or CLICK or SPACE', W/2, 450);
   textSize(32); text('TO START', W/2, 500);
 }
 
-function drawBackgroundAnim() {
-  // Si les frames animées ne sont pas encore chargées, on s'abstient (pas de NaN)
-  const n = backgroundGameFrames.length;
-  if (!n) return;
-  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % n;
-
-  const bg = backgroundGameFrames[backgroundGameIdx];
-  if (!bg) return;
-  const scale = 0.25;
-  const bgWidth = bg.width * scale;
-  const bgHeight = bg.height * scale;
-  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
-}
-
 function drawOver() {
   image(backgroundGame, 0, 0, W, H);
-  drawBackgroundAnim();
+  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
+  let bg = backgroundGameFrames[backgroundGameIdx];
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
 
-  // Score & Best centrés
+  // Score & Best centrés (par rapport au canvas)
   fill(233, 46, 46);
-  textAlign(CENTER, CENTER);
   textSize(28);
+  textAlign(CENTER, CENTER);
   text('Score: ' + score, W/2, 100);
-  text('Best: ' + best,  W/2, 140);
+  text('Best: ' + best, W/2, 140);
 
-  // Phrase rigolote multi-lignes centrée
-  fill(255, 215, 0);
-  const PHRASE_SIZE = 25;
-  drawCenteredWrappedText(funnyPhrase, W/2, 220, W * 0.85, 22, PHRASE_SIZE);
+  // Phrase rigolote multi-lignes centrée (wrap + centrage ligne par ligne)
+  fill(255, 215, 0); // jaune doré
+  textSize(25);
+  drawCenteredWrappedText(funnyPhrase, W/2, 220, W * 0.85, 22);
 
   // Spotify logo (taille d'origine, centré dans la zone bouton)
+  push();
+  noStroke();
   if (spotifyLogoImg) {
-    push();
     imageMode(CENTER);
     image(spotifyLogoImg, SPOTIFY_BTN.x + SPOTIFY_BTN.w / 2, SPOTIFY_BTN.y + SPOTIFY_BTN.h / 2);
-    pop();
   }
+  pop();
 }
 
 function drawPlay() {
   image(backgroundGame, 0, 0, W, H);
-  drawBackgroundAnim();
+  if (frameCount % 30 === 0) backgroundGameIdx = (backgroundGameIdx + 1) % backgroundGameFrames.length;
+  let bg = backgroundGameFrames[backgroundGameIdx];
+  let bgWidth = bg.width * 0.25;
+  let bgHeight = bg.height * 0.25;
+  image(bg, (W - bgWidth) / 2, H - bgHeight, bgWidth, bgHeight);
 
   rocket.vel += GRAVITY;
   rocket.y += rocket.vel;
   drawRocket(rocket.x, rocket.y);
   if (rocket.y < 0 || rocket.y > H) gameOver();
 
-  const picSpeed = SPEED + score * 0.05;
-  const chickenSpeed = picSpeed * 1.3;
+  let picSpeed = SPEED + score * 0.05;
+  let chickenSpeed = picSpeed * 1.3;
 
-  const enemyFrequency = max(60, 120 - score * 1.5);
+  let enemyFrequency = max(60, 120 - score * 1.5);
   if (frameCount % enemyFrequency === 0) {
     if (random() > 0.5) enemies.push(makeChicken());
     else obstacles.push(makePic());
@@ -186,14 +184,24 @@ function drawPlay() {
     if (score >= 20) {
       if (c.vx === undefined) {
         const v = chickenSpeed / Math.sqrt(2);
-        if (random() < 0.5) { c.vx = -v; c.vy =  v; }
-        else {                c.vx = -v; c.vy = -v; }
+        if (random() < 0.5) {
+          c.vx = -v;
+          c.vy = v;
+        } else {
+          c.vx = -v;
+          c.vy = -v;
+        }
       }
       c.x += c.vx;
       c.y += c.vy;
 
-      if (c.y < 0) { c.y = 0; c.vy = -c.vy; }
-      else if (c.y + c.h > H) { c.y = H - c.h; c.vy = -c.vy; }
+      if (c.y < 0) {
+        c.y = 0;
+        c.vy = -c.vy;
+      } else if (c.y + c.h > H) {
+        c.y = H - c.h;
+        c.vy = -c.vy;
+      }
     } else {
       c.x -= chickenSpeed;
     }
@@ -201,7 +209,10 @@ function drawPlay() {
     drawChicken(c);
     if (c.x + c.w < 0) enemies.splice(i, 1);
     if (hitRocket(rocket, c)) gameOver();
-    if (!c.passed && c.x + c.w < rocket.x) { c.passed = true; score++; }
+    if (!c.passed && c.x + c.w < rocket.x) {
+      c.passed = true;
+      score++;
+    }
   }
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -210,11 +221,13 @@ function drawPlay() {
     drawPic(p);
     if (p.x + p.w < 0) obstacles.splice(i, 1);
     if (hitRocket(rocket, p)) gameOver();
-    if (!p.passed && p.x + p.w < rocket.x) { p.passed = true; score++; }
+    if (!p.passed && p.x + p.w < rocket.x) {
+      p.passed = true;
+      score++;
+    }
   }
 
   fill(233, 46, 46);
-  textAlign(CENTER, CENTER);
   textSize(36);
   text(score, W/2, 60);
 }
@@ -222,9 +235,7 @@ function drawPlay() {
 function drawChicken(c) {
   push();
   imageMode(CENTER);
-  if (frameCount % Math.max(1, Math.floor(60 / CHICKEN_RATE)) === 0) {
-    chickenIdx = (chickenIdx + 1) % chickenFrames.length;
-  }
+  if (frameCount % (60 / CHICKEN_RATE) === 0) chickenIdx = (chickenIdx + 1) % chickenFrames.length;
   image(chickenFrames[chickenIdx], c.x + 25, c.y + 25, 50, 50);
   pop();
 }
@@ -233,7 +244,6 @@ function drawPic(p) {
   image(p.img, p.x, p.y, p.w, p.h);
 }
 
-// ---------- ENTITÉS ----------
 function makeChicken() {
   return { x: W, y: random(25, H - 25), w: 50, h: 50, passed: false };
 }
@@ -244,9 +254,9 @@ function makePic() {
   let y, w, h, hitboxW;
   switch (picNames[idx]) {
     case 'pic_petit_haut.png': w = h = 80 * 1.05; hitboxW = 20; y = 0; break;
-    case 'pic_petit_bas.png':  w = h = 80 * 1.05; hitboxW = 20; y = H - h; break;
-    case 'pic_gros_haut.png':  w = h = 120 * 1.05; hitboxW = 40; y = 0; break;
-    case 'pic_gros_bas.png':   w = h = 120 * 1.05; hitboxW = 40; y = H - h; break;
+    case 'pic_petit_bas.png': w = h = 80 * 1.05; hitboxW = 20; y = H - h; break;
+    case 'pic_gros_haut.png': w = h = 120 * 1.05; hitboxW = 40; y = 0; break;
+    case 'pic_gros_bas.png': w = h = 120 * 1.05; hitboxW = 40; y = H - h; break;
   }
   return { x: W, y, w, h, hitboxW, img, passed: false };
 }
@@ -257,19 +267,20 @@ function hitRocket(r, o) {
          (r.y - hR / 2 < o.y + o.h && r.y + hR / 2 > o.y);
 }
 
-// ---------- GAME STATE ----------
 function resetGame() {
   rocket = { x: 100, y: H / 2, vel: 0 };
   enemies = [];
   obstacles = [];
   score = 0;
-  funnyPhrase = '';
+  funnyPhrase = ''; // clear phrase until next game over
 }
 
 function startMusic() {
-  if (mainMusic && mainMusic.isLoaded() && !mainMusic.isPlaying()) {
-    mainMusic.play();
-    mainMusic.setLoop(true);
+  if (mainMusic && mainMusic.isLoaded()) {
+    if (!mainMusic.isPlaying()) {
+      mainMusic.play();
+      mainMusic.setLoop(true);
+    }
   }
 }
 
@@ -283,15 +294,12 @@ function gameOver() {
   state = 'over';
   best = max(score, best);
   stopMusic();
+
+  // choose one funny phrase for this game over
   funnyPhrase = random(funnyPhrases);
 }
 
 function action() {
-  // Déverrouille l’audio iOS si besoin
-  if (getAudioContext && getAudioContext().state !== 'running') {
-    try { getAudioContext().resume(); } catch (e) {}
-  }
-
   if (state === 'start') {
     resetGame();
     state = 'play';
@@ -305,13 +313,13 @@ function action() {
   }
 }
 
-// ---------- INPUT ----------
 function keyPressed() {
   if (key === ' ') action();
 }
 
 function mousePressed() {
   if (state === 'over') {
+    // detect click on spotify logo area (using button rect in canvas coords)
     if (
       mouseX >= SPOTIFY_BTN.x &&
       mouseX <= SPOTIFY_BTN.x + SPOTIFY_BTN.w &&
@@ -319,47 +327,25 @@ function mousePressed() {
       mouseY <= SPOTIFY_BTN.y + SPOTIFY_BTN.h
     ) {
       window.open(SPOTIFY_URL, '_blank');
-      return;
+      return; // don't restart the game when clicking the spotify logo
     }
   }
   action();
 }
 
-// Mobile: assure le tap + déverrouille audio
-function touchStarted() {
-  mousePressed();
-  return false;
-}
-
-// ---------- Lazy loader: 128 frames de background, chargées séquentiellement ----------
-function loadBgAnimFramesSequential(n) {
-  if (n < 1) return;
-  const idx = 128 - n;
-  const path = `sprites/background_${n.toString().padStart(3, '0')}.png`;
-  loadImage(path, (img) => {
-    backgroundGameFrames[idx] = img;
-    // Enchaîne doucement pour ne pas saturer le réseau mobile
-    setTimeout(() => loadBgAnimFramesSequential(n - 1), 0);
-  }, () => {
-    // En cas d'erreur, on continue quand même
-    setTimeout(() => loadBgAnimFramesSequential(n - 1), 0);
-  });
-}
-
-/* ---------- Helper: draw centered wrapped text (line-by-line centering) ----------
-   NOTE: fontSize est passé en paramètre pour éviter les "écrasements" cachés. */
-function drawCenteredWrappedText(txt, centerX, centerY, maxWidth, lineHeight = 20, fontSize = 18) {
+/* ---------- Helper: draw centered wrapped text (line-by-line centering) ---------- */
+function drawCenteredWrappedText(txt, centerX, centerY, maxWidth, lineHeight = 20) {
   if (!txt) return;
   push();
-  textSize(fontSize);
-  textAlign(LEFT, CENTER);
-  const words = txt.split(' ');
-  const lines = [];
+  textAlign(LEFT, CENTER); // measure with LEFT
+  textSize(25); // ensure measurement same as drawing
+  let words = txt.split(' ');
+  let lines = [];
   let currentLine = '';
 
   for (let i = 0; i < words.length; i++) {
-    const testLine = currentLine ? (currentLine + ' ' + words[i]) : words[i];
-    const tw = textWidth(testLine);
+    let testLine = currentLine ? (currentLine + ' ' + words[i]) : words[i];
+    let tw = textWidth(testLine);
     if (tw > maxWidth) {
       if (currentLine) lines.push(currentLine);
       currentLine = words[i];
@@ -369,9 +355,12 @@ function drawCenteredWrappedText(txt, centerX, centerY, maxWidth, lineHeight = 2
   }
   if (currentLine) lines.push(currentLine);
 
+  // compute vertical start to center the block on centerY
   const totalH = lines.length * lineHeight;
-  const startY = centerY - totalH / 2 + lineHeight / 2;
+  let startY = centerY - totalH / 2 + lineHeight / 2;
 
+  // draw each line centered horizontally
+  textAlign(LEFT, CENTER);
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const lw = textWidth(line);
