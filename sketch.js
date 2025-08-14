@@ -143,7 +143,7 @@ function drawOver() {
 
   // Phrase rigolote multi-lignes centrée (wrap + centrage ligne par ligne)
   fill(255, 215, 0); // jaune doré
-  textSize(40);
+  textSize(25);
   drawCenteredWrappedText(funnyPhrase, W/2, 220, W * 0.85, 22);
 
   // Spotify logo (taille d'origine, centré dans la zone bouton)
@@ -338,7 +338,7 @@ function drawCenteredWrappedText(txt, centerX, centerY, maxWidth, lineHeight = 2
   if (!txt) return;
   push();
   textAlign(LEFT, CENTER); // measure with LEFT
-  textSize(18); // ensure measurement same as drawing
+  textSize(25); // ensure measurement same as drawing
   let words = txt.split(' ');
   let lines = [];
   let currentLine = '';
