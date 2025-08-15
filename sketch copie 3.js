@@ -1,4 +1,4 @@
-// Flappy Flyman – version optimisée avec diagonales fixes
+// Flappy Flyman – version optimisée
 let rocket, enemies = [], obstacles = [], score = 0, best = 0;
 let rocketFrames = [], chickenFrames = [], rocketIdx = 0, chickenIdx = 0;
 let picImgs = [], picNames = ['pic_petit_haut.png','pic_petit_bas.png','pic_gros_haut.png','pic_gros_bas.png'];
@@ -155,21 +155,22 @@ function drawPlay(){
   }
 
   for(let i=enemies.length-1;i>=0;i--){
-    let c = enemies[i];
-
-    if(score>=20 && c.diagonal){
-      c.x += c.vx;
-      c.y += c.vy;
-      if(c.y < 0){ c.y = 0; c.vy = -c.vy; }
-      else if(c.y + c.h > H){ c.y = H - c.h; c.vy = -c.vy; }
-    } else {
-      c.x -= chickenSpeed;
-    }
+    let c=enemies[i];
+    if(score>=20 && random()<0.5){ // 50% chance diagonale
+      if(c.vx===undefined){
+        const v=chickenSpeed/Math.sqrt(2);
+        c.vx=random()<0.5?-v:v;
+        c.vy=random()<0.5?-v:v;
+      }
+      c.x+=c.vx; c.y+=c.vy;
+      if(c.y<0){c.y=0;c.vy=-c.vy;}
+      else if(c.y+c.h>H){c.y=H-c.h;c.vy=-c.vy;}
+    } else c.x-=chickenSpeed;
 
     drawChicken(c);
-    if(c.x + c.w < 0) enemies.splice(i,1);
+    if(c.x+c.w<0) enemies.splice(i,1);
     if(hitRocket(rocket,c)) gameOver();
-    if(!c.passed && c.x + c.w < rocket.x){ c.passed = true; score++; }
+    if(!c.passed && c.x+c.w<rocket.x){c.passed=true;score++;}
   }
 
   for(let i=obstacles.length-1;i>=0;i--){
@@ -193,16 +194,7 @@ function drawChicken(c){ push(); imageMode(CENTER);
 
 function drawPic(p){ image(p.img,p.x,p.y,p.w,p.h); }
 
-function makeChicken(){
-  const c = {x:W, y:random(25,H-25), w:50, h:50, passed:false};
-  if(score >= 20 && random()<0.5){ // 50% de chance diagonale après 20 pts
-    c.diagonal = true;
-    const v = min((SPEED+40*0.05)*1.3, SPEED*1.3) / Math.sqrt(2);
-    c.vx = random()<0.5?-v:v;
-    c.vy = random()<0.5?-v:v;
-  } else c.diagonal = false;
-  return c;
-}
+function makeChicken(){ return {x:W,y:random(25,H-25),w:50,h:50,passed:false}; }
 
 function makePic(){
   const idx=floor(random(4)), img=picImgs[idx]; let y,w,h,hitboxW;
